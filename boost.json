@@ -1,0 +1,23 @@
+{
+    "agents": [
+        "cursor",
+        "claude_code",
+        "codex",
+        "gemini"
+    ],
+    "cloud": false,
+    "guidelines": true,
+    "mcp": true,
+    "nightwatch": false,
+    "sail": false,
+    "skills": [
+        "infer-conventions",
+        "fortify-development",
+        "laravel-best-practices",
+        "testing-best-practices",
+        "telescope-debugging",
+        "wayfinder-development",
+        "inertia-react-development",
+        "tailwindcss-development"
+    ]
+}

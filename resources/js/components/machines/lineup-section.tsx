@@ -1,0 +1,88 @@
+import { useState } from 'react';
+import {
+    CatalogImage,
+    MACHINE_IMAGE_FALLBACK,
+    machineImageSrc,
+} from '@/components/frontend/catalog-image';
+import {
+    Reveal,
+    brandCardHoverClass,
+} from '@/components/frontend/reveal';
+import { SectionHead } from '@/components/frontend/section-head';
+import { Band } from '@/components/frontend/wrap';
+import type { MachineLineupData } from '@/types/frontend';
+import { cn } from '@/lib/utils';
+
+export function LineupSection({ data }: { data: MachineLineupData }) {
+    const [filter, setFilter] = useState(data.filters[0] ?? 'All');
+
+    const visible = data.items.filter(
+        (machine) => filter === 'All' || machine.type === filter,
+    );
+
+    return (
+        <Band>
+            <SectionHead title={data.title} text={data.text} />
+            <div className="mb-5 flex flex-wrap gap-2">
+                {data.filters.map((chip) => (
+                    <button
+                        key={chip}
+                        type="button"
+                        aria-pressed={filter === chip}
+                        onClick={() => setFilter(chip)}
+                        className={cn(
+                            'rounded-full border-2 border-brand-line bg-brand-surface px-3.5 py-1.5 text-sm font-medium text-brand-ink',
+                            filter === chip &&
+                                'border-brand-ink bg-brand-ink text-brand-bg',
+                        )}
+                    >
+                        {chip}
+                    </button>
+                ))}
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {visible.map((machine, index) => (
+                    <Reveal key={machine.id} delay={index * 0.05}>
+                        <a
+                            href={machine.href}
+                            className={cn(
+                                'flex h-full min-w-0 flex-col gap-2.5 rounded-brand border border-brand-line bg-brand-surface p-6 no-underline',
+                                brandCardHoverClass,
+                            )}
+                        >
+                            <div className="grid place-items-center rounded-lg bg-brand-sunk p-3.5">
+                                <CatalogImage
+                                    src={machineImageSrc(
+                                        machine.kind,
+                                        machine.image,
+                                    )}
+                                    alt={machine.name}
+                                    fallback={MACHINE_IMAGE_FALLBACK}
+                                />
+                            </div>
+                            <h3 className="font-display text-xl font-bold text-brand-ink">
+                                {machine.name}
+                            </h3>
+                            <div className="flex flex-wrap gap-1.5">
+                                {machine.tags.map((tag) => (
+                                    <span
+                                        key={tag}
+                                        className="rounded bg-brand-sunk px-1.5 py-0.5 font-mono text-xs font-semibold tracking-wide text-brand-muted uppercase"
+                                    >
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+                            <p className="text-sm text-brand-muted">
+                                {machine.desc}
+                            </p>
+                            <span className="mt-auto inline-flex self-start rounded-full border border-current px-3 py-1.5 text-sm font-semibold">
+                                View details
+                            </span>
+                        </a>
+                    </Reveal>
+                ))}
+            </div>
+        </Band>
+    );
+}

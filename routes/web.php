@@ -1,0 +1,518 @@
+<?php
+
+use App\Enums\PermissionEnum;
+use App\Http\Controllers\Admin\AboutFaqController;
+use App\Http\Controllers\Admin\ArticleController;
+use App\Http\Controllers\Admin\CityController;
+use App\Http\Controllers\Admin\CoffeeMachineController;
+use App\Http\Controllers\Admin\CoffeeServiceRequestController as AdminCoffeeServiceRequestController;
+use App\Http\Controllers\Admin\CoffeeTypeController;
+use App\Http\Controllers\Admin\ContactMessageController as AdminContactMessageController;
+use App\Http\Controllers\Admin\HomeFaqController;
+use App\Http\Controllers\Admin\LegalPageController;
+use App\Http\Controllers\Admin\LocationTypeController;
+use App\Http\Controllers\Admin\MachineCategoryController;
+use App\Http\Controllers\Admin\MachineController;
+use App\Http\Controllers\Admin\MachineFaqController;
+use App\Http\Controllers\Admin\MembershipSettingController;
+use App\Http\Controllers\Admin\OfficeCoffeeFaqController;
+use App\Http\Controllers\Admin\OperatorSmsController;
+use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
+use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\SmsTemplateController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\VendingRequestController as AdminVendingRequestController;
+use App\Http\Controllers\Auth\LocationSuggestController;
+use App\Http\Controllers\Auth\RegisterAccountController;
+use App\Http\Controllers\Auth\RegisterOtpController;
+use App\Http\Controllers\Auth\RegisterOtpVerifyController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FileUploadDemoController;
+use App\Http\Controllers\Frontend\AboutController;
+use App\Http\Controllers\Frontend\CitiesController;
+use App\Http\Controllers\Frontend\CoffeeServiceRequestController;
+use App\Http\Controllers\Frontend\ContactController;
+use App\Http\Controllers\Frontend\ContactMessageController;
+use App\Http\Controllers\Frontend\HomeController;
+use App\Http\Controllers\Frontend\IndustriesController;
+use App\Http\Controllers\Frontend\LegalController;
+use App\Http\Controllers\Frontend\MachinesController;
+use App\Http\Controllers\Frontend\MicroMarketsController;
+use App\Http\Controllers\Frontend\OfficeCoffeeController;
+use App\Http\Controllers\Frontend\OperatorsController;
+use App\Http\Controllers\Frontend\ProductsController;
+use App\Http\Controllers\Frontend\ResourcesController;
+use App\Http\Controllers\Frontend\SchoolsController;
+use App\Http\Controllers\Frontend\VendingRequestController;
+use App\Http\Controllers\Operator\AccountController;
+use App\Http\Controllers\Operator\BillingController;
+use App\Http\Controllers\Operator\LeadController;
+use App\Http\Controllers\Operator\MembershipCheckoutController;
+use App\Http\Controllers\Operator\RouteController;
+use App\Http\Controllers\Operator\SubscriptionController;
+use App\Http\Controllers\PostAttachmentController;
+use App\Http\Controllers\Webhooks\SquareWebhookController;
+use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::post('/vending-requests', [VendingRequestController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('vending-requests.store');
+Route::post('/coffee-service-requests', [CoffeeServiceRequestController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('coffee-service-requests.store');
+Route::get('/machines', [MachinesController::class, 'index'])->name('machines');
+Route::get('/machines/{machine}', [MachinesController::class, 'show'])->name('machines.show');
+Route::get('/products', [ProductsController::class, 'index'])->name('products');
+Route::get('/micro-markets', [MicroMarketsController::class, 'index'])->name('micro-markets');
+Route::get('/office-coffee', [OfficeCoffeeController::class, 'index'])->name('office-coffee');
+Route::get('/contact', [ContactController::class, 'index'])->name('contact');
+Route::post('/contact', [ContactMessageController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('contact.store');
+Route::get('/about', [AboutController::class, 'index'])->name('about');
+Route::get('/schools', [SchoolsController::class, 'index'])->name('schools');
+Route::get('/resources', [ResourcesController::class, 'index'])->name('resources');
+Route::get('/resources/{article}', [ResourcesController::class, 'show'])->name('resources.show');
+Route::get('/cities', [CitiesController::class, 'index'])->name('cities');
+Route::get('/operators', [OperatorsController::class, 'index'])->name('operators');
+Route::get('/legal/{page}', [LegalController::class, 'show'])
+    ->whereIn('page', ['privacy', 'terms', 'operator-terms'])
+    ->name('legal.show');
+Route::get('/industries', [IndustriesController::class, 'index'])->name('industries');
+Route::get('/industries/{industry}', [IndustriesController::class, 'show'])->name('industries.show');
+
+Route::get('/register/location-suggest', LocationSuggestController::class)
+    ->middleware('throttle:60,1')
+    ->name('register.location-suggest');
+
+// Square webhooks: signature-verified, CSRF-exempt (see bootstrap/app.php), no auth.
+Route::post('/webhooks/square', SquareWebhookController::class)
+    ->middleware('throttle:120,1')
+    ->name('webhooks.square');
+
+Route::post('/register/account', [RegisterAccountController::class, 'store'])
+    ->middleware(['guest', 'throttle:10,1'])
+    ->name('register.account');
+
+Route::middleware(['auth', 'throttle:5,1'])->group(function () {
+    Route::post('/register/otp', [RegisterOtpController::class, 'store'])
+        ->name('register.otp');
+    Route::post('/register/otp/verify', [RegisterOtpVerifyController::class, 'store'])
+        ->name('register.otp.verify');
+});
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('leads', [LeadController::class, 'index'])
+        ->middleware('membership.active')
+        ->name('leads.index');
+    Route::get('leads/purchased', [LeadController::class, 'purchased'])->name('leads.purchased');
+    Route::get('leads/tickets', [LeadController::class, 'tickets'])->name('leads.tickets');
+    Route::get('leads/faq', [LeadController::class, 'faq'])->name('leads.faq');
+    Route::post('leads/{source}/{lead}/purchase', [LeadController::class, 'purchase'])
+        ->whereIn('source', ['vending', 'coffee'])
+        ->whereNumber('lead')
+        ->middleware(['membership.active', 'throttle:10,1'])
+        ->name('leads.purchase');
+    Route::get('routes', [RouteController::class, 'index'])->name('routes.index');
+    Route::get('routes/sell', [RouteController::class, 'sell'])->name('routes.sell');
+    Route::get('account', [AccountController::class, 'index'])->name('account.index');
+    Route::get('account/location', [AccountController::class, 'location'])->name('account.location');
+    Route::get('subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
+    Route::post('subscription/checkout', [MembershipCheckoutController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('subscription.checkout');
+    Route::get('billing', [BillingController::class, 'index'])->name('billing.index');
+
+    // ── Demo landing page ─────────────────────────────────────────────────────
+    Route::get('/file-upload-demo', [FileUploadDemoController::class, 'index'])
+        ->name('file-upload-demo.index')->middleware('permission:'.PermissionEnum::FILE_UPLOAD_INDEX->value);
+
+    // ── Single / multiple file upload (used by demos 1 & 2) ──────────────────
+    Route::post('/upload', [FileUploadDemoController::class, 'store'])
+        ->name('upload.store')->middleware('permission:'.PermissionEnum::FILE_UPLOAD_STORE->value);
+
+    // ── Edit-mode endpoint (demo 3) ───────────────────────────────────────────
+    Route::post('/posts/{post}', [PostAttachmentController::class, 'update'])
+        ->name('posts.update')->middleware('permission:'.PermissionEnum::POSTS_EDIT->value);
+
+    // ── Admin: access management ──────────────────────────────────────────────
+    Route::prefix('admin')->name('admin.')->group(function () {
+        // Legacy users URLs → user management.
+        Route::redirect('users', '/admin/user-management');
+        Route::redirect('users/create', '/admin/user-management/create');
+        Route::get('users/{user}', fn (User $user) => redirect()->route('admin.user-management.show', $user));
+        Route::get('users/{user}/edit', fn (User $user) => redirect()->route('admin.user-management.edit', $user));
+
+        // User management — accounts with the `user` role only.
+        Route::controller(UserController::class)->prefix('user-management')->name('user-management.')->group(function () {
+            Route::get('/', 'index')->name('index')
+                ->middleware('permission:'.PermissionEnum::USERS_INDEX->value);
+            Route::get('create', 'create')->name('create')
+                ->middleware('permission:'.PermissionEnum::USERS_CREATE->value);
+            Route::post('/', 'store')->name('store')
+                ->middleware(['permission:'.PermissionEnum::USERS_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('{user}', 'show')->name('show')
+                ->middleware('permission:'.PermissionEnum::USERS_VIEW->value);
+            Route::get('{user}/edit', 'edit')->name('edit')
+                ->middleware('permission:'.PermissionEnum::USERS_EDIT->value);
+            Route::put('{user}', 'update')->name('update')
+                ->middleware(['permission:'.PermissionEnum::USERS_EDIT->value, HandlePrecognitiveRequests::class]);
+            Route::delete('{user}', 'destroy')->name('destroy')
+                ->middleware('permission:'.PermissionEnum::USERS_DELETE->value);
+        });
+
+        // Admin management — accounts with the `admin` role only (super-admin actors).
+        Route::controller(UserController::class)->prefix('admin-management')->name('admin-management.')->group(function () {
+            Route::get('/', 'index')->name('index')
+                ->middleware('permission:'.PermissionEnum::USERS_INDEX->value);
+            Route::get('create', 'create')->name('create')
+                ->middleware('permission:'.PermissionEnum::USERS_CREATE->value);
+            Route::post('/', 'store')->name('store')
+                ->middleware(['permission:'.PermissionEnum::USERS_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('{user}', 'show')->name('show')
+                ->middleware('permission:'.PermissionEnum::USERS_VIEW->value);
+            Route::get('{user}/edit', 'edit')->name('edit')
+                ->middleware('permission:'.PermissionEnum::USERS_EDIT->value);
+            Route::put('{user}', 'update')->name('update')
+                ->middleware(['permission:'.PermissionEnum::USERS_EDIT->value, HandlePrecognitiveRequests::class]);
+            Route::delete('{user}', 'destroy')->name('destroy')
+                ->middleware('permission:'.PermissionEnum::USERS_DELETE->value);
+        });
+
+        // Roles — full CRUD with grouped permission assignment.
+        Route::controller(RoleController::class)->group(function () {
+            Route::get('roles', 'index')->name('roles.index')
+                ->middleware('permission:'.PermissionEnum::ROLES_INDEX->value);
+            Route::get('roles/create', 'create')->name('roles.create')
+                ->middleware('permission:'.PermissionEnum::ROLES_CREATE->value);
+            Route::post('roles', 'store')->name('roles.store')
+                ->middleware(['permission:'.PermissionEnum::ROLES_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('roles/{role}/edit', 'edit')->name('roles.edit')
+                ->middleware('permission:'.PermissionEnum::ROLES_EDIT->value);
+            Route::put('roles/{role}', 'update')->name('roles.update')
+                ->middleware(['permission:'.PermissionEnum::ROLES_EDIT->value, HandlePrecognitiveRequests::class]);
+            Route::delete('roles/{role}', 'destroy')->name('roles.destroy')
+                ->middleware('permission:'.PermissionEnum::ROLES_DELETE->value);
+        });
+
+        // Permissions — read-only listing + CSV / Excel export.
+        Route::controller(PermissionController::class)->group(function () {
+            Route::get('permissions', 'index')->name('permissions.index')
+                ->middleware('permission:'.PermissionEnum::PERMISSIONS_INDEX->value);
+            Route::get('permissions/export', 'export')->name('permissions.export')
+                ->middleware('permission:'.PermissionEnum::PERMISSIONS_EXPORT->value);
+        });
+
+        // Machine categories — required before creating machines.
+        Route::controller(MachineCategoryController::class)->group(function () {
+            Route::get('machine-categories', 'index')->name('machine-categories.index')
+                ->middleware('permission:'.PermissionEnum::MACHINE_CATEGORIES_INDEX->value);
+            Route::get('machine-categories/create', 'create')->name('machine-categories.create')
+                ->middleware('permission:'.PermissionEnum::MACHINE_CATEGORIES_CREATE->value);
+            Route::post('machine-categories', 'store')->name('machine-categories.store')
+                ->middleware(['permission:'.PermissionEnum::MACHINE_CATEGORIES_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('machine-categories/{machine_category}/edit', 'edit')->name('machine-categories.edit')
+                ->middleware('permission:'.PermissionEnum::MACHINE_CATEGORIES_EDIT->value);
+            Route::put('machine-categories/{machine_category}', 'update')->name('machine-categories.update')
+                ->middleware(['permission:'.PermissionEnum::MACHINE_CATEGORIES_EDIT->value, HandlePrecognitiveRequests::class]);
+            Route::delete('machine-categories/{machine_category}', 'destroy')->name('machine-categories.destroy')
+                ->middleware('permission:'.PermissionEnum::MACHINE_CATEGORIES_DELETE->value);
+        });
+
+        // Machines — full CRUD with category assignment.
+        Route::controller(MachineController::class)->group(function () {
+            Route::get('machines', 'index')->name('machines.index')
+                ->middleware('permission:'.PermissionEnum::MACHINES_INDEX->value);
+            Route::get('machines/create', 'create')->name('machines.create')
+                ->middleware('permission:'.PermissionEnum::MACHINES_CREATE->value);
+            Route::post('machines', 'store')->name('machines.store')
+                ->middleware(['permission:'.PermissionEnum::MACHINES_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('machines/{machine}', 'show')->name('machines.show')
+                ->middleware('permission:'.PermissionEnum::MACHINES_VIEW->value);
+            Route::get('machines/{machine}/edit', 'edit')->name('machines.edit')
+                ->middleware('permission:'.PermissionEnum::MACHINES_EDIT->value);
+            Route::put('machines/{machine}', 'update')->name('machines.update')
+                ->middleware(['permission:'.PermissionEnum::MACHINES_EDIT->value, HandlePrecognitiveRequests::class]);
+            Route::delete('machines/{machine}', 'destroy')->name('machines.destroy')
+                ->middleware('permission:'.PermissionEnum::MACHINES_DELETE->value);
+        });
+
+        // Products — full CRUD (catalog cards).
+        Route::controller(ProductController::class)->group(function () {
+            Route::get('products', 'index')->name('products.index')
+                ->middleware('permission:'.PermissionEnum::PRODUCTS_INDEX->value);
+            Route::get('products/create', 'create')->name('products.create')
+                ->middleware('permission:'.PermissionEnum::PRODUCTS_CREATE->value);
+            Route::post('products', 'store')->name('products.store')
+                ->middleware(['permission:'.PermissionEnum::PRODUCTS_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('products/{product}', 'show')->name('products.show')
+                ->middleware('permission:'.PermissionEnum::PRODUCTS_VIEW->value);
+            Route::get('products/{product}/edit', 'edit')->name('products.edit')
+                ->middleware('permission:'.PermissionEnum::PRODUCTS_EDIT->value);
+            Route::put('products/{product}', 'update')->name('products.update')
+                ->middleware(['permission:'.PermissionEnum::PRODUCTS_EDIT->value, HandlePrecognitiveRequests::class]);
+            Route::delete('products/{product}', 'destroy')->name('products.destroy')
+                ->middleware('permission:'.PermissionEnum::PRODUCTS_DELETE->value);
+        });
+
+        // Vending requests — public form inbox + manual admin create.
+        Route::controller(AdminVendingRequestController::class)->group(function () {
+            Route::get('vending-requests', 'index')->name('vending-requests.index')
+                ->middleware('permission:'.PermissionEnum::VENDING_REQUESTS_INDEX->value);
+            Route::get('vending-requests/create', 'create')->name('vending-requests.create')
+                ->middleware('permission:'.PermissionEnum::VENDING_REQUESTS_CREATE->value);
+            Route::post('vending-requests', 'store')->name('vending-requests.store')
+                ->middleware(['permission:'.PermissionEnum::VENDING_REQUESTS_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('vending-requests/{vending_request}', 'show')->name('vending-requests.show')
+                ->middleware('permission:'.PermissionEnum::VENDING_REQUESTS_VIEW->value);
+            Route::put('vending-requests/{vending_request}', 'update')->name('vending-requests.update')
+                ->middleware('permission:'.PermissionEnum::VENDING_REQUESTS_EDIT->value);
+            Route::delete('vending-requests/{vending_request}', 'destroy')->name('vending-requests.destroy')
+                ->middleware('permission:'.PermissionEnum::VENDING_REQUESTS_DELETE->value);
+        });
+
+        // Coffee service requests — office coffee form inbox + manual admin create.
+        Route::controller(AdminCoffeeServiceRequestController::class)->group(function () {
+            Route::get('coffee-service-requests', 'index')->name('coffee-service-requests.index')
+                ->middleware('permission:'.PermissionEnum::COFFEE_SERVICE_REQUESTS_INDEX->value);
+            Route::get('coffee-service-requests/create', 'create')->name('coffee-service-requests.create')
+                ->middleware('permission:'.PermissionEnum::COFFEE_SERVICE_REQUESTS_CREATE->value);
+            Route::post('coffee-service-requests', 'store')->name('coffee-service-requests.store')
+                ->middleware(['permission:'.PermissionEnum::COFFEE_SERVICE_REQUESTS_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('coffee-service-requests/{coffee_service_request}', 'show')->name('coffee-service-requests.show')
+                ->middleware('permission:'.PermissionEnum::COFFEE_SERVICE_REQUESTS_VIEW->value);
+            Route::put('coffee-service-requests/{coffee_service_request}', 'update')->name('coffee-service-requests.update')
+                ->middleware('permission:'.PermissionEnum::COFFEE_SERVICE_REQUESTS_EDIT->value);
+            Route::delete('coffee-service-requests/{coffee_service_request}', 'destroy')->name('coffee-service-requests.destroy')
+                ->middleware('permission:'.PermissionEnum::COFFEE_SERVICE_REQUESTS_DELETE->value);
+        });
+
+        // Contact form inbox from the public contact page.
+        Route::controller(AdminContactMessageController::class)->group(function () {
+            Route::get('contact-messages', 'index')->name('contact-messages.index')
+                ->middleware('permission:'.PermissionEnum::CONTACT_MESSAGES_INDEX->value);
+            Route::get('contact-messages/{contact_message}', 'show')->name('contact-messages.show')
+                ->middleware('permission:'.PermissionEnum::CONTACT_MESSAGES_VIEW->value);
+            Route::put('contact-messages/{contact_message}', 'update')->name('contact-messages.update')
+                ->middleware('permission:'.PermissionEnum::CONTACT_MESSAGES_EDIT->value);
+            Route::delete('contact-messages/{contact_message}', 'destroy')->name('contact-messages.destroy')
+                ->middleware('permission:'.PermissionEnum::CONTACT_MESSAGES_DELETE->value);
+        });
+
+        // Manual SMS to operators by distance / search + SMS templates.
+        Route::controller(OperatorSmsController::class)->group(function () {
+            Route::get('operator-sms', 'index')->name('operator-sms.index')
+                ->middleware('permission:'.PermissionEnum::OPERATOR_SMS_INDEX->value);
+            Route::post('operator-sms', 'send')->name('operator-sms.send')
+                ->middleware('permission:'.PermissionEnum::OPERATOR_SMS_SEND->value);
+        });
+
+        // Lead + membership payments — read-only history (refunds deferred).
+        Route::controller(AdminPaymentController::class)->group(function () {
+            Route::get('payments', 'index')->name('payments.index')
+                ->middleware('permission:'.PermissionEnum::PAYMENTS_INDEX->value);
+        });
+
+        Route::controller(MembershipSettingController::class)->group(function () {
+            Route::get('membership-settings', 'edit')->name('membership-settings.edit')
+                ->middleware('permission:'.PermissionEnum::MEMBERSHIP_SETTINGS_EDIT->value);
+            Route::put('membership-settings', 'update')->name('membership-settings.update')
+                ->middleware(['permission:'.PermissionEnum::MEMBERSHIP_SETTINGS_EDIT->value, HandlePrecognitiveRequests::class]);
+        });
+
+        Route::controller(SmsTemplateController::class)->group(function () {
+            Route::get('operator-sms/templates', 'index')->name('operator-sms.templates.index')
+                ->middleware('permission:'.PermissionEnum::OPERATOR_SMS_INDEX->value);
+            Route::post('operator-sms/templates', 'store')->name('operator-sms.templates.store')
+                ->middleware('permission:'.PermissionEnum::OPERATOR_SMS_SEND->value);
+            Route::put('operator-sms/templates/{sms_template}', 'update')->name('operator-sms.templates.update')
+                ->middleware('permission:'.PermissionEnum::OPERATOR_SMS_SEND->value);
+            Route::delete('operator-sms/templates/{sms_template}', 'destroy')->name('operator-sms.templates.destroy')
+                ->middleware('permission:'.PermissionEnum::OPERATOR_SMS_SEND->value);
+        });
+
+        // Home FAQs — public homepage FAQ items.
+        Route::controller(HomeFaqController::class)->group(function () {
+            Route::get('home-faqs', 'index')->name('home-faqs.index')
+                ->middleware('permission:'.PermissionEnum::HOME_FAQS_INDEX->value);
+            Route::get('home-faqs/create', 'create')->name('home-faqs.create')
+                ->middleware('permission:'.PermissionEnum::HOME_FAQS_CREATE->value);
+            Route::post('home-faqs', 'store')->name('home-faqs.store')
+                ->middleware(['permission:'.PermissionEnum::HOME_FAQS_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('home-faqs/{home_faq}/edit', 'edit')->name('home-faqs.edit')
+                ->middleware('permission:'.PermissionEnum::HOME_FAQS_EDIT->value);
+            Route::put('home-faqs/{home_faq}', 'update')->name('home-faqs.update')
+                ->middleware(['permission:'.PermissionEnum::HOME_FAQS_EDIT->value, HandlePrecognitiveRequests::class]);
+            Route::delete('home-faqs/{home_faq}', 'destroy')->name('home-faqs.destroy')
+                ->middleware('permission:'.PermissionEnum::HOME_FAQS_DELETE->value);
+        });
+
+        // Reviews — home-page customer reviews.
+        Route::controller(ReviewController::class)->group(function () {
+            Route::get('reviews', 'index')->name('reviews.index')
+                ->middleware('permission:'.PermissionEnum::REVIEWS_INDEX->value);
+            Route::get('reviews/create', 'create')->name('reviews.create')
+                ->middleware('permission:'.PermissionEnum::REVIEWS_CREATE->value);
+            Route::post('reviews', 'store')->name('reviews.store')
+                ->middleware(['permission:'.PermissionEnum::REVIEWS_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('reviews/{review}/edit', 'edit')->name('reviews.edit')
+                ->middleware('permission:'.PermissionEnum::REVIEWS_EDIT->value);
+            Route::put('reviews/{review}', 'update')->name('reviews.update')
+                ->middleware(['permission:'.PermissionEnum::REVIEWS_EDIT->value, HandlePrecognitiveRequests::class]);
+            Route::delete('reviews/{review}', 'destroy')->name('reviews.destroy')
+                ->middleware('permission:'.PermissionEnum::REVIEWS_DELETE->value);
+        });
+
+        // Legal pages — privacy, terms and operator terms content.
+        Route::controller(LegalPageController::class)->group(function () {
+            Route::get('legal-pages', 'index')->name('legal-pages.index')
+                ->middleware('permission:'.PermissionEnum::LEGAL_PAGES_INDEX->value);
+            Route::get('legal-pages/{legal_page}/edit', 'edit')->name('legal-pages.edit')
+                ->middleware('permission:'.PermissionEnum::LEGAL_PAGES_EDIT->value);
+            Route::put('legal-pages/{legal_page}', 'update')->name('legal-pages.update')
+                ->middleware(['permission:'.PermissionEnum::LEGAL_PAGES_EDIT->value, HandlePrecognitiveRequests::class]);
+        });
+
+        // About FAQs — public about-page FAQ items.
+        Route::controller(AboutFaqController::class)->group(function () {
+            Route::get('about-faqs', 'index')->name('about-faqs.index')
+                ->middleware('permission:'.PermissionEnum::ABOUT_FAQS_INDEX->value);
+            Route::get('about-faqs/create', 'create')->name('about-faqs.create')
+                ->middleware('permission:'.PermissionEnum::ABOUT_FAQS_CREATE->value);
+            Route::post('about-faqs', 'store')->name('about-faqs.store')
+                ->middleware(['permission:'.PermissionEnum::ABOUT_FAQS_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('about-faqs/{about_faq}/edit', 'edit')->name('about-faqs.edit')
+                ->middleware('permission:'.PermissionEnum::ABOUT_FAQS_EDIT->value);
+            Route::put('about-faqs/{about_faq}', 'update')->name('about-faqs.update')
+                ->middleware(['permission:'.PermissionEnum::ABOUT_FAQS_EDIT->value, HandlePrecognitiveRequests::class]);
+            Route::delete('about-faqs/{about_faq}', 'destroy')->name('about-faqs.destroy')
+                ->middleware('permission:'.PermissionEnum::ABOUT_FAQS_DELETE->value);
+        });
+
+        // Machine FAQs — public machines-page FAQ items.
+        Route::controller(MachineFaqController::class)->group(function () {
+            Route::get('machine-faqs', 'index')->name('machine-faqs.index')
+                ->middleware('permission:'.PermissionEnum::MACHINE_FAQS_INDEX->value);
+            Route::get('machine-faqs/create', 'create')->name('machine-faqs.create')
+                ->middleware('permission:'.PermissionEnum::MACHINE_FAQS_CREATE->value);
+            Route::post('machine-faqs', 'store')->name('machine-faqs.store')
+                ->middleware(['permission:'.PermissionEnum::MACHINE_FAQS_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('machine-faqs/{machine_faq}/edit', 'edit')->name('machine-faqs.edit')
+                ->middleware('permission:'.PermissionEnum::MACHINE_FAQS_EDIT->value);
+            Route::put('machine-faqs/{machine_faq}', 'update')->name('machine-faqs.update')
+                ->middleware(['permission:'.PermissionEnum::MACHINE_FAQS_EDIT->value, HandlePrecognitiveRequests::class]);
+            Route::delete('machine-faqs/{machine_faq}', 'destroy')->name('machine-faqs.destroy')
+                ->middleware('permission:'.PermissionEnum::MACHINE_FAQS_DELETE->value);
+        });
+
+        // Office coffee FAQs — public office coffee page FAQ items.
+        Route::controller(OfficeCoffeeFaqController::class)->group(function () {
+            Route::get('office-coffee-faqs', 'index')->name('office-coffee-faqs.index')
+                ->middleware('permission:'.PermissionEnum::OFFICE_COFFEE_FAQS_INDEX->value);
+            Route::get('office-coffee-faqs/create', 'create')->name('office-coffee-faqs.create')
+                ->middleware('permission:'.PermissionEnum::OFFICE_COFFEE_FAQS_CREATE->value);
+            Route::post('office-coffee-faqs', 'store')->name('office-coffee-faqs.store')
+                ->middleware(['permission:'.PermissionEnum::OFFICE_COFFEE_FAQS_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('office-coffee-faqs/{office_coffee_faq}/edit', 'edit')->name('office-coffee-faqs.edit')
+                ->middleware('permission:'.PermissionEnum::OFFICE_COFFEE_FAQS_EDIT->value);
+            Route::put('office-coffee-faqs/{office_coffee_faq}', 'update')->name('office-coffee-faqs.update')
+                ->middleware(['permission:'.PermissionEnum::OFFICE_COFFEE_FAQS_EDIT->value, HandlePrecognitiveRequests::class]);
+            Route::delete('office-coffee-faqs/{office_coffee_faq}', 'destroy')->name('office-coffee-faqs.destroy')
+                ->middleware('permission:'.PermissionEnum::OFFICE_COFFEE_FAQS_DELETE->value);
+        });
+
+        // Coffee machines — equipment cards on the public office coffee page.
+        Route::controller(CoffeeMachineController::class)->group(function () {
+            Route::get('coffee-machines', 'index')->name('coffee-machines.index')
+                ->middleware('permission:'.PermissionEnum::COFFEE_MACHINES_INDEX->value);
+            Route::get('coffee-machines/create', 'create')->name('coffee-machines.create')
+                ->middleware('permission:'.PermissionEnum::COFFEE_MACHINES_CREATE->value);
+            Route::post('coffee-machines', 'store')->name('coffee-machines.store')
+                ->middleware(['permission:'.PermissionEnum::COFFEE_MACHINES_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('coffee-machines/{coffee_machine}/edit', 'edit')->name('coffee-machines.edit')
+                ->middleware('permission:'.PermissionEnum::COFFEE_MACHINES_EDIT->value);
+            Route::put('coffee-machines/{coffee_machine}', 'update')->name('coffee-machines.update')
+                ->middleware(['permission:'.PermissionEnum::COFFEE_MACHINES_EDIT->value, HandlePrecognitiveRequests::class]);
+            Route::delete('coffee-machines/{coffee_machine}', 'destroy')->name('coffee-machines.destroy')
+                ->middleware('permission:'.PermissionEnum::COFFEE_MACHINES_DELETE->value);
+        });
+
+        // Coffee types — "What we stock." chips on the public office coffee page.
+        Route::controller(CoffeeTypeController::class)->group(function () {
+            Route::get('coffee-types', 'index')->name('coffee-types.index')
+                ->middleware('permission:'.PermissionEnum::COFFEE_TYPES_INDEX->value);
+            Route::get('coffee-types/create', 'create')->name('coffee-types.create')
+                ->middleware('permission:'.PermissionEnum::COFFEE_TYPES_CREATE->value);
+            Route::post('coffee-types', 'store')->name('coffee-types.store')
+                ->middleware(['permission:'.PermissionEnum::COFFEE_TYPES_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('coffee-types/{coffee_type}/edit', 'edit')->name('coffee-types.edit')
+                ->middleware('permission:'.PermissionEnum::COFFEE_TYPES_EDIT->value);
+            Route::put('coffee-types/{coffee_type}', 'update')->name('coffee-types.update')
+                ->middleware(['permission:'.PermissionEnum::COFFEE_TYPES_EDIT->value, HandlePrecognitiveRequests::class]);
+            Route::delete('coffee-types/{coffee_type}', 'destroy')->name('coffee-types.destroy')
+                ->middleware('permission:'.PermissionEnum::COFFEE_TYPES_DELETE->value);
+        });
+
+        // Articles — "Resource hub" cards and /resources/{slug} detail pages.
+        Route::controller(ArticleController::class)->group(function () {
+            Route::get('articles', 'index')->name('articles.index')
+                ->middleware('permission:'.PermissionEnum::ARTICLES_INDEX->value);
+            Route::get('articles/create', 'create')->name('articles.create')
+                ->middleware('permission:'.PermissionEnum::ARTICLES_CREATE->value);
+            Route::post('articles', 'store')->name('articles.store')
+                ->middleware(['permission:'.PermissionEnum::ARTICLES_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('articles/{article}/edit', 'edit')->name('articles.edit')
+                ->middleware('permission:'.PermissionEnum::ARTICLES_EDIT->value);
+            Route::put('articles/{article}', 'update')->name('articles.update')
+                ->middleware(['permission:'.PermissionEnum::ARTICLES_EDIT->value, HandlePrecognitiveRequests::class]);
+            Route::delete('articles/{article}', 'destroy')->name('articles.destroy')
+                ->middleware('permission:'.PermissionEnum::ARTICLES_DELETE->value);
+        });
+
+        // Cities — "Cities where we manage vending" chips, with CSV / Excel bulk upload.
+        Route::controller(CityController::class)->group(function () {
+            Route::get('cities', 'index')->name('cities.index')
+                ->middleware('permission:'.PermissionEnum::CITIES_INDEX->value);
+            Route::get('cities/create', 'create')->name('cities.create')
+                ->middleware('permission:'.PermissionEnum::CITIES_CREATE->value);
+            Route::get('cities/template', 'template')->name('cities.template')
+                ->middleware('permission:'.PermissionEnum::CITIES_IMPORT->value);
+            Route::post('cities/import', 'import')->name('cities.import')
+                ->middleware('permission:'.PermissionEnum::CITIES_IMPORT->value);
+            Route::post('cities', 'store')->name('cities.store')
+                ->middleware(['permission:'.PermissionEnum::CITIES_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('cities/{city}/edit', 'edit')->name('cities.edit')
+                ->middleware('permission:'.PermissionEnum::CITIES_EDIT->value);
+            Route::put('cities/{city}', 'update')->name('cities.update')
+                ->middleware(['permission:'.PermissionEnum::CITIES_EDIT->value, HandlePrecognitiveRequests::class]);
+            Route::delete('cities/{city}', 'destroy')->name('cities.destroy')
+                ->middleware('permission:'.PermissionEnum::CITIES_DELETE->value);
+        });
+
+        // Location types — chips on the public vending request form.
+        Route::controller(LocationTypeController::class)->group(function () {
+            Route::get('location-types', 'index')->name('location-types.index')
+                ->middleware('permission:'.PermissionEnum::LOCATION_TYPES_INDEX->value);
+            Route::get('location-types/create', 'create')->name('location-types.create')
+                ->middleware('permission:'.PermissionEnum::LOCATION_TYPES_CREATE->value);
+            Route::post('location-types', 'store')->name('location-types.store')
+                ->middleware(['permission:'.PermissionEnum::LOCATION_TYPES_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('location-types/{location_type}/edit', 'edit')->name('location-types.edit')
+                ->middleware('permission:'.PermissionEnum::LOCATION_TYPES_EDIT->value);
+            Route::put('location-types/{location_type}', 'update')->name('location-types.update')
+                ->middleware(['permission:'.PermissionEnum::LOCATION_TYPES_EDIT->value, HandlePrecognitiveRequests::class]);
+            Route::delete('location-types/{location_type}', 'destroy')->name('location-types.destroy')
+                ->middleware('permission:'.PermissionEnum::LOCATION_TYPES_DELETE->value);
+        });
+
+    });
+});
+
+require __DIR__.'/settings.php';
