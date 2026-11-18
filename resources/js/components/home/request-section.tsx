@@ -1,15 +1,16 @@
 import { useForm } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { BrandButton } from '@/components/frontend/brand-button';
 import { Wrap } from '@/components/frontend/wrap';
 import {
-    LocationAutocomplete,
-    type LocationSuggestion,
+    LocationAutocomplete
+    
 } from '@/components/location/location-autocomplete';
+import type {LocationSuggestion} from '@/components/location/location-autocomplete';
+import { cn } from '@/lib/utils';
 import { store as storeVendingRequest } from '@/routes/vending-requests';
 import type { RequestFormData } from '@/types/frontend';
-import { cn } from '@/lib/utils';
 
 const STEPS = ['Location', 'Details', 'Machines', 'Contact'] as const;
 
@@ -84,8 +85,8 @@ export function RequestSection({ data }: { data: RequestFormData }) {
         postal_code: null as string | null,
         latitude: null as number | null,
         longitude: null as number | null,
-        employees_on_site: '',
-        daily_visitors: '',
+        employees_on_site: '' as number | '',
+        daily_visitors: '' as number | '',
         placement: 'Inside' as string,
         space_notes: '',
         food_on_site: data.yesNoOptions[1] ?? 'No',
@@ -115,13 +116,8 @@ export function RequestSection({ data }: { data: RequestFormData }) {
 
     const isSwitchingProvider = form.data.existing_vending !== 'No';
 
-    useEffect(() => {
-        const keys = Object.keys(form.errors);
-
-        if (keys.length === 0) {
-            return;
-        }
-
+    function showFirstStepWithErrors(errors: Record<string, string>) {
+        const keys = Object.keys(errors);
         const firstStep = [0, 1, 2, 3].find((index) =>
             (STEP_FIELDS[index] ?? []).some((field) => keys.includes(field)),
         );
@@ -129,7 +125,7 @@ export function RequestSection({ data }: { data: RequestFormData }) {
         if (firstStep !== undefined) {
             setStep(firstStep);
         }
-    }, [form.errors]);
+    }
 
     function toggleInterest(value: string) {
         const current = form.data.machine_interests;
@@ -148,9 +144,11 @@ export function RequestSection({ data }: { data: RequestFormData }) {
             if (!form.data.location_type) {
                 errors.location_type = 'Select a location type.';
             }
+
             if (!form.data.business_name.trim()) {
                 errors.business_name = 'Business name is required.';
             }
+
             if (!selectedLocation) {
                 errors.city = 'Select a valid address from the suggestions.';
             }
@@ -160,6 +158,7 @@ export function RequestSection({ data }: { data: RequestFormData }) {
             if (form.data.machine_interests.length === 0) {
                 errors.machine_interests = 'Select at least one interest.';
             }
+
             if (
                 form.data.existing_vending !== 'No' &&
                 !form.data.switch_reason.trim()
@@ -172,9 +171,11 @@ export function RequestSection({ data }: { data: RequestFormData }) {
             if (!form.data.contact_name.trim()) {
                 errors.contact_name = 'Name is required.';
             }
+
             if (!form.data.email.trim()) {
                 errors.email = 'Email is required.';
             }
+
             if (!form.data.phone.trim()) {
                 errors.phone = 'Phone is required.';
             } else {
@@ -184,6 +185,7 @@ export function RequestSection({ data }: { data: RequestFormData }) {
                     errors.phone = 'Phone must contain between 7 and 15 digits.';
                 }
             }
+
             if (!form.data.terms_accepted) {
                 errors.terms_accepted = 'You must agree to the terms.';
             }
@@ -216,11 +218,15 @@ export function RequestSection({ data }: { data: RequestFormData }) {
                 setDone(true);
                 form.reset();
             },
+            onError: showFirstStepWithErrors,
         });
     }
 
     function errorFor(field: string): string | undefined {
-        return stepErrors[field] ?? form.errors[field];
+        return (
+            stepErrors[field] ??
+            (form.errors as Record<string, string | undefined>)[field]
+        );
     }
 
     const fieldClass =
@@ -339,6 +345,7 @@ export function RequestSection({ data }: { data: RequestFormData }) {
                                                 delete next.latitude;
                                                 delete next.longitude;
                                                 delete next.address_or_zip;
+
                                                 return next;
                                             });
                                         }}
@@ -487,7 +494,7 @@ export function RequestSection({ data }: { data: RequestFormData }) {
                                         />
                                     </label>
                                     <label className="flex flex-col gap-1 text-sm font-semibold">
-                                        Are you comparing quotes?
+                                        Are you comparing providers?
                                         <select
                                             value={form.data.comparing_quotes}
                                             onChange={(event) =>

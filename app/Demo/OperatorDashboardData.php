@@ -239,18 +239,6 @@ class OperatorDashboardData
     /**
      * @return array<string, mixed>
      */
-    public static function locationSettings(User $user): array
-    {
-        return [
-            'primaryCity' => $user->operatorProfile?->primary_city ?: 'Houston, TX',
-            'changesRemaining' => 5,
-            'changesTotal' => 5,
-        ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
     public static function billing(): array
     {
         return [

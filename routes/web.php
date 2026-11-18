@@ -124,6 +124,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('routes/sell', [RouteController::class, 'sell'])->name('routes.sell');
     Route::get('account', [AccountController::class, 'index'])->name('account.index');
     Route::get('account/location', [AccountController::class, 'location'])->name('account.location');
+    Route::put('account/location', [AccountController::class, 'updateLocation'])
+        ->middleware('throttle:20,1')
+        ->name('account.location.update');
     Route::get('subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
     Route::post('subscription/checkout', [MembershipCheckoutController::class, 'store'])
         ->middleware('throttle:10,1')
