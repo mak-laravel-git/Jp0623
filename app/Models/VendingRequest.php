@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property string $location_type
+ * @property string|null $location_type_note
  * @property string $business_name
  * @property string $address_or_zip
  * @property string|null $address
@@ -54,6 +55,11 @@ class VendingRequest extends Model
 
     public const STATUS_REVIEWED = 'reviewed';
 
+    /**
+     * The location type that asks the admin for a note describing the location.
+     */
+    public const OTHER_LOCATION_TYPE = 'Other';
+
     public const PLACEMENTS = [
         'Inside',
         'Outside (covered)',
@@ -80,6 +86,7 @@ class VendingRequest extends Model
 
     protected $fillable = [
         'location_type',
+        'location_type_note',
         'business_name',
         'address_or_zip',
         'address',
@@ -112,6 +119,20 @@ class VendingRequest extends Model
         'operator_sms_note',
         'operator_sms_notified_at',
     ];
+
+    /**
+     * The location type as shown to operators: "Other" carries its note, e.g. "Other: Car dealership".
+     */
+    public function locationTypeLabel(): string
+    {
+        $note = trim((string) $this->location_type_note);
+
+        if ($this->location_type === self::OTHER_LOCATION_TYPE && $note !== '') {
+            return $this->location_type.': '.$note;
+        }
+
+        return $this->location_type;
+    }
 
     /**
      * Operator purchases of this lead (pending / paid / failed / …).

@@ -34,6 +34,18 @@ test('operators see new and reviewed vending and coffee requests as leads', func
         );
 });
 
+test('operators see the note on Other leads but keep the plain category', function () {
+    VendingRequest::factory()->otherLocationType('Car dealership lounge')->create(['status' => 'new']);
+
+    $this->actingAs(makeOperator())
+        ->get(route('leads.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('leads.0.type', 'Other: Car dealership lounge')
+            ->where('leads.0.cat', 'Other')
+        );
+});
+
 test('unpriced leads stay hidden until an admin sets a price', function () {
     $lead = VendingRequest::factory()->unpriced()->create(['status' => 'new']);
 

@@ -167,6 +167,13 @@ export default function ShowVendingRequest({
                                 label="Type"
                                 value={vendingRequest.location_type}
                             />
+                            {vendingRequest.location_type_note && (
+                                <Detail
+                                    label="Type note"
+                                    value={vendingRequest.location_type_note}
+                                    className="sm:col-span-2"
+                                />
+                            )}
                             <Detail
                                 label="Business"
                                 value={vendingRequest.business_name}

@@ -359,6 +359,7 @@ export type OperatorSmsStatus =
 export interface AdminVendingRequest {
     id: number;
     location_type: string;
+    location_type_note: string | null;
     business_name: string;
     address_or_zip: string;
     address: string | null;
