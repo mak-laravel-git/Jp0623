@@ -10,6 +10,7 @@ import {
     LayoutGrid,
     MapPinned,
     MapPin,
+    MessageSquare,
     Newspaper,
     Package,
     Receipt,
@@ -61,6 +62,8 @@ import adminMachineFaqs from '@/routes/admin/machine-faqs';
 import adminMachines from '@/routes/admin/machines';
 import adminOfficeCoffeeFaqs from '@/routes/admin/office-coffee-faqs';
 import adminProducts from '@/routes/admin/products';
+import adminRouteInquiries from '@/routes/admin/route-inquiries';
+import adminRouteListings from '@/routes/admin/route-listings';
 import adminUserManagement from '@/routes/admin/user-management';
 import adminCoffeeServiceRequests from '@/routes/admin/coffee-service-requests';
 import adminContactMessages from '@/routes/admin/contact-messages';
@@ -77,7 +80,7 @@ import {
     purchased as leadsPurchased,
     tickets as leadsTickets,
 } from '@/routes/leads';
-import { index as routesIndex, sell as routesSell } from '@/routes/routes';
+import { index as routesIndex } from '@/routes/routes';
 import { index as subscriptionIndex } from '@/routes/subscription';
 import type { NavItem } from '@/types';
 import { PERMISSIONS } from '@/types/permissions';
@@ -142,25 +145,12 @@ export function AppSidebar() {
                         },
                     ],
                 },
-                // {
-                //     title: 'Routes for sale',
-                //     icon: Route,
-                //     permissions: [PERMISSIONS.DASHBOARD.VIEW],
-                //     items: [
-                //         {
-                //             title: 'Routes for sale',
-                //             href: routesIndex(),
-                //             icon: Route,
-                //             permissions: [PERMISSIONS.DASHBOARD.VIEW],
-                //         },
-                //         {
-                //             title: 'Submit route for sale',
-                //             href: routesSell(),
-                //             icon: Send,
-                //             permissions: [PERMISSIONS.DASHBOARD.VIEW],
-                //         },
-                //     ],
-                // },
+                {
+                    title: 'Established locations & routes for sale',
+                    href: routesIndex(),
+                    icon: Route,
+                    permissions: [PERMISSIONS.DASHBOARD.VIEW],
+                },
                 {
                     title: 'Account',
                     icon: User,
@@ -265,6 +255,18 @@ export function AppSidebar() {
                 href: adminLocationTypes.index(),
                 icon: MapPin,
                 permissions: [PERMISSIONS.LOCATION_TYPES.INDEX],
+            },
+            {
+                title: 'Route Listings',
+                href: adminRouteListings.index(),
+                icon: Route,
+                permissions: [PERMISSIONS.ROUTE_LISTINGS.INDEX],
+            },
+            {
+                title: 'Route Inquiries',
+                href: adminRouteInquiries.index(),
+                icon: MessageSquare,
+                permissions: [PERMISSIONS.ROUTE_INQUIRIES.INDEX],
             },
             {
                 title: 'Cities',

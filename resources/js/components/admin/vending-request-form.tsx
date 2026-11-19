@@ -4,9 +4,10 @@ import { Save } from 'lucide-react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
 import {
-    LocationAutocomplete,
-    type LocationSuggestion,
+    LocationAutocomplete
+    
 } from '@/components/location/location-autocomplete';
+import type {LocationSuggestion} from '@/components/location/location-autocomplete';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -180,6 +181,7 @@ export function VendingRequestForm({
                         selected={selectedLocation}
                         onQueryChange={(value) => {
                             setLocationQuery(value);
+
                             if (selectedLocation) {
                                 applyLocation(null);
                             }
@@ -269,7 +271,7 @@ export function VendingRequestForm({
                     <InputError message={form.errors.food_on_site} />
                 </div>
                 <div className="grid gap-2">
-                    <Label>Comparing quotes</Label>
+                    <Label>Comparing providers</Label>
                     <Select
                         value={form.data.comparing_quotes}
                         onValueChange={(value) =>

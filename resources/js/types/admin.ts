@@ -161,6 +161,46 @@ export interface AdminContactMessage {
     updated_at: string;
 }
 
+export interface AdminRouteListing {
+    id: number;
+    city: string;
+    about: string;
+    locations_count: number;
+    machines_count: number;
+    annual_revenue: number;
+    asking_price: number;
+    seller_financing: boolean;
+    is_active: boolean;
+    listed_at: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export type RouteInquiryStatus = 'pending' | 'contacted' | 'closed';
+
+export interface AdminRouteInquiry {
+    id: number;
+    route_listing_id: number | null;
+    user_id: number;
+    contact_name: string;
+    contact_email: string;
+    contact_phone: string | null;
+    listing_reference: string;
+    listing_city: string;
+    listing_asking_price: number;
+    message: string;
+    status: RouteInquiryStatus;
+    created_at: string;
+    updated_at: string;
+    route_listing?: {
+        id: number;
+        city: string;
+        about: string;
+        asking_price: number;
+        is_active: boolean;
+    } | null;
+}
+
 export interface AdminLocationType {
     id: number;
     name: string;

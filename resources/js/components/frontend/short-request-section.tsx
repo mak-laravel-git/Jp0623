@@ -4,9 +4,10 @@ import type { FormEvent } from 'react';
 import { BrandButton } from '@/components/frontend/brand-button';
 import { Band } from '@/components/frontend/wrap';
 import {
-    LocationAutocomplete,
-    type LocationSuggestion,
+    LocationAutocomplete
+    
 } from '@/components/location/location-autocomplete';
+import type {LocationSuggestion} from '@/components/location/location-autocomplete';
 import type { RouteDefinition } from '@/wayfinder';
 
 export type ShortRequestFormData = {
@@ -95,7 +96,7 @@ export function ShortRequestSection({
         value: ShortRequestFields[K],
     ) {
         if (action) {
-            form.setData(key, value);
+            form.setData((current) => ({ ...current, [key]: value }));
         } else {
             setLocalData((current) => ({ ...current, [key]: value }));
         }

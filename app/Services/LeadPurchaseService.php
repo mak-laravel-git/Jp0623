@@ -6,12 +6,15 @@ use App\Exceptions\Payments\LeadUnavailableException;
 use App\Exceptions\Payments\PaymentFailedException;
 use App\Exceptions\Payments\SquareNotConfiguredException;
 use App\Exceptions\Payments\SquarePaymentException;
+use App\Mail\LeadPurchasedBuyerMail;
+use App\Mail\LeadPurchasedContactMail;
 use App\Models\LeadPurchase;
 use App\Models\User;
 use App\Services\Payments\SquareClient;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 /**
@@ -274,7 +277,29 @@ class LeadPurchaseService
             'purchased_at' => now(),
         ])->save();
 
+        $this->queuePurchaseEmails($locked);
+
         return $locked;
+    }
+
+    /**
+     * Email the operator the lead contact's details and the lead contact the
+     * operator's details. Runs once, on the pending → paid transition.
+     */
+    private function queuePurchaseEmails(LeadPurchase $purchase): void
+    {
+        $purchase->loadMissing(['user.operatorProfile', 'leadable']);
+
+        $buyerEmail = $purchase->user?->email;
+        $contactEmail = $purchase->leadable?->email;
+
+        if ($buyerEmail !== null && $buyerEmail !== '') {
+            Mail::to($buyerEmail)->queue(new LeadPurchasedBuyerMail($purchase));
+        }
+
+        if ($contactEmail !== null && $contactEmail !== '') {
+            Mail::to($contactEmail)->queue(new LeadPurchasedContactMail($purchase));
+        }
     }
 
     private function failLocked(

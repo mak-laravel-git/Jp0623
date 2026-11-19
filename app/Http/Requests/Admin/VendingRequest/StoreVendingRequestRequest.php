@@ -115,7 +115,7 @@ class StoreVendingRequestRequest extends FormRequest
             'placement' => 'placement',
             'space_notes' => 'space notes',
             'food_on_site' => 'food options on site',
-            'comparing_quotes' => 'comparing quotes',
+            'comparing_quotes' => 'comparing providers',
             'machine_interests' => 'machine interests',
             'machine_count' => 'machine count',
             'existing_vending' => 'existing vending',

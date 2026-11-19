@@ -1,32 +1,64 @@
-import { Head } from '@inertiajs/react';
-import { useState, type FormEvent } from 'react';
-import { toast } from 'sonner';
+import { Head, useForm } from '@inertiajs/react';
+import { useState } from 'react';
+import type { FormEvent } from 'react';
+import { updateLocation } from '@/actions/App/Http/Controllers/Operator/AccountController';
+import { LocationAutocomplete } from '@/components/location/location-autocomplete';
+import type { LocationSuggestion } from '@/components/location/location-autocomplete';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { dashboard } from '@/routes';
 import { location as accountLocation } from '@/routes/account';
 
-export default function AccountLocation({
-    primaryCity,
-    changesRemaining,
-    changesTotal,
-}: {
+type AccountLocationProps = {
     primaryCity: string;
+    location: LocationSuggestion | null;
+    additionalServiceAreas: string;
     changesRemaining: number;
     changesTotal: number;
-}) {
-    const [city, setCity] = useState(primaryCity);
-    const [remaining, setRemaining] = useState(changesRemaining);
+    changeWindowDays: number;
+};
 
-    const handleSave = (event: FormEvent<HTMLFormElement>) => {
+export default function AccountLocation({
+    location,
+    additionalServiceAreas,
+    changesRemaining,
+    changesTotal,
+    changeWindowDays,
+}: AccountLocationProps) {
+    const [query, setQuery] = useState(location?.label ?? '');
+    const [selected, setSelected] = useState<LocationSuggestion | null>(
+        location,
+    );
+    const form = useForm(updateLocation(), {
+        city: location?.city ?? '',
+        state: location?.state ?? '',
+        address: location?.address ?? '',
+        postal_code: location?.postal_code ?? '',
+        latitude: location?.latitude ?? null,
+        longitude: location?.longitude ?? null,
+        additional_service_areas: additionalServiceAreas,
+    });
+
+    function handleSelect(suggestion: LocationSuggestion) {
+        setSelected(suggestion);
+        setQuery(suggestion.label);
+        form.clearErrors('city', 'state', 'latitude', 'longitude');
+        form.setData((data) => ({
+            ...data,
+            city: suggestion.city,
+            state: suggestion.state,
+            address: suggestion.address ?? '',
+            postal_code: suggestion.postal_code ?? '',
+            latitude: suggestion.latitude,
+            longitude: suggestion.longitude,
+        }));
+    }
+
+    function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        const nextRemaining = Math.max(remaining - 1, 0);
-        setRemaining(nextRemaining);
-        toast.success(
-            `Primary city saved. Changes left this period: ${nextRemaining} of ${changesTotal}.`,
-        );
-    };
+        form.submit({ preserveScroll: true });
+    }
 
     return (
         <>
@@ -44,23 +76,29 @@ export default function AccountLocation({
                 </div>
 
                 <div className="rounded-xl border bg-card p-6 shadow-sm">
-                    <form onSubmit={handleSave} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="primary-city">
-                                Primary city I offer vending in
-                            </Label>
-                            <Input
-                                id="primary-city"
-                                required
-                                value={city}
-                                onChange={(event) => setCity(event.target.value)}
-                            />
-                        </div>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <LocationAutocomplete
+                            id="primary-city"
+                            label="Primary city I offer vending in"
+                            value={query}
+                            selected={selected}
+                            suggestType="city"
+                            onQueryChange={setQuery}
+                            onSelect={handleSelect}
+                            onClearSelection={() => setSelected(null)}
+                            error={
+                                form.errors.city ??
+                                form.errors.state ??
+                                form.errors.latitude ??
+                                form.errors.longitude
+                            }
+                        />
                         <p className="text-sm text-muted-foreground">
-                            You may change your primary city up to {changesTotal}{' '}
-                            times in 90 days. Changes remaining:{' '}
+                            You may change your primary city up to{' '}
+                            {changesTotal} times in {changeWindowDays} days.
+                            Changes remaining:{' '}
                             <strong>
-                                {remaining} of {changesTotal}
+                                {changesRemaining} of {changesTotal}
                             </strong>
                             .
                         </p>
@@ -71,14 +109,30 @@ export default function AccountLocation({
                             <Input
                                 id="addon-areas"
                                 placeholder="e.g. Austin, TX"
-                                disabled
+                                value={form.data.additional_service_areas}
+                                onChange={(event) =>
+                                    form.setData(
+                                        'additional_service_areas',
+                                        event.target.value,
+                                    )
+                                }
                             />
+                            <p className="text-sm text-muted-foreground">
+                                List other markets you serve, separated by
+                                commas.
+                            </p>
+                            {form.errors.additional_service_areas ? (
+                                <p className="text-sm text-red-600">
+                                    {form.errors.additional_service_areas}
+                                </p>
+                            ) : null}
                         </div>
                         <Button
                             type="submit"
+                            disabled={form.processing || selected === null}
                             className="bg-brass text-brass-ink hover:bg-brass/90"
                         >
-                            Save
+                            {form.processing ? 'Saving…' : 'Save'}
                         </Button>
                     </form>
                 </div>

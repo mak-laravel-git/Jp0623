@@ -24,7 +24,7 @@ test('micro markets page renders with demo props', function () {
             ->has('equipment.items', 4)
             ->where('offerings.title', 'From breakfast to late shift.')
             ->has('offerings.items', 5)
-            ->where('compare.title', 'Micro markets & Vendera coolers: we offer both.')
+            ->where('compare.title', 'Micro markets & Sandstar AI coolers: we offer both.')
             ->has('compare.items', 2)
             ->where('compare.items.0.href', '/machines/micro-market')
             ->where('compare.items.1.href', '/machines/ai-cooler')

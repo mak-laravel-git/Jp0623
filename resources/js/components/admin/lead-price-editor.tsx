@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,15 +21,19 @@ export function LeadPriceEditor({
     const [saving, setSaving] = useState(false);
     const isUnpriced = price === null || price < 1;
 
-    useEffect(() => {
+    const [syncedPrice, setSyncedPrice] = useState(price);
+
+    if (price !== syncedPrice) {
+        setSyncedPrice(price);
         setValue(price !== null ? String(price) : '');
-    }, [price]);
+    }
 
     function handleSave() {
         const nextPrice = Number(value);
 
         if (!Number.isInteger(nextPrice) || nextPrice < 1) {
             setError('Enter a whole-dollar price of at least 1.');
+
             return;
         }
 
@@ -89,7 +93,7 @@ export function LeadPriceEditor({
                     </Button>
                 ) : null}
             </div>
-            <InputError message={error} />
+            <InputError message={error ?? undefined} />
         </div>
     );
 }

@@ -149,6 +149,17 @@ enum PermissionEnum: string
     case LOCATION_TYPES_EDIT = 'location-types.edit';
     case LOCATION_TYPES_DELETE = 'location-types.delete';
 
+    // ROUTE LISTINGS (established locations & routes for sale)
+    case ROUTE_LISTINGS_INDEX = 'route-listings.index';
+    case ROUTE_LISTINGS_CREATE = 'route-listings.create';
+    case ROUTE_LISTINGS_EDIT = 'route-listings.edit';
+    case ROUTE_LISTINGS_DELETE = 'route-listings.delete';
+
+    // ROUTE INQUIRIES (member inquiries about route listings)
+    case ROUTE_INQUIRIES_INDEX = 'route-inquiries.index';
+    case ROUTE_INQUIRIES_VIEW = 'route-inquiries.view';
+    case ROUTE_INQUIRIES_EDIT = 'route-inquiries.edit';
+
     // OPERATOR SMS
     case OPERATOR_SMS_INDEX = 'operator-sms.index';
     case OPERATOR_SMS_SEND = 'operator-sms.send';
@@ -293,6 +304,15 @@ enum PermissionEnum: string
             self::LOCATION_TYPES_CREATE,
             self::LOCATION_TYPES_EDIT,
             self::LOCATION_TYPES_DELETE => 'Location Types',
+
+            self::ROUTE_LISTINGS_INDEX,
+            self::ROUTE_LISTINGS_CREATE,
+            self::ROUTE_LISTINGS_EDIT,
+            self::ROUTE_LISTINGS_DELETE => 'Route Listings',
+
+            self::ROUTE_INQUIRIES_INDEX,
+            self::ROUTE_INQUIRIES_VIEW,
+            self::ROUTE_INQUIRIES_EDIT => 'Route Inquiries',
 
             self::OPERATOR_SMS_INDEX,
             self::OPERATOR_SMS_SEND => 'Operator SMS',

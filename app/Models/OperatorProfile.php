@@ -18,6 +18,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'machine_types',
     'machines_needed',
     'primary_city',
+    'additional_service_areas',
+    'primary_city_changes',
     'address',
     'city',
     'state',
@@ -49,6 +51,7 @@ class OperatorProfile extends Model
         return [
             'owns_machines' => 'boolean',
             'machine_types' => 'array',
+            'primary_city_changes' => 'array',
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
             'terms_accepted_at' => 'datetime',

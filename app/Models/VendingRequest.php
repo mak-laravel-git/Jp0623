@@ -64,7 +64,7 @@ class VendingRequest extends Model
         'Drinks',
         'Combo',
         'Healthy',
-        'Vendera cooler',
+        'Sandstar AI cooler',
         'Micro market',
         'Coffee',
     ];

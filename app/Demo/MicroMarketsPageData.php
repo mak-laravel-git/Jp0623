@@ -125,7 +125,7 @@ class MicroMarketsPageData
     public static function compare(): array
     {
         return [
-            'title' => 'Micro markets & Vendera coolers: we offer both.',
+            'title' => 'Micro markets & Sandstar AI coolers: we offer both.',
             // Populated from active Machine records in MicroMarketsController.
             'items' => [],
         ];

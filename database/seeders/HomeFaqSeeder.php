@@ -48,7 +48,7 @@ class HomeFaqSeeder extends Seeder
             ],
             [
                 'question' => 'What types of machines do you offer?',
-                'answer' => 'Snack, drink and combo machines, Vendera smart coolers, micro markets and office coffee.',
+                'answer' => 'Snack, drink and combo machines, Sandstar AI coolers, micro markets and office coffee.',
             ],
             [
                 'question' => 'Can you support multi-location businesses?',

@@ -64,7 +64,7 @@ test('registration screen can be rendered', function () {
                 'Snack',
                 'Drink',
                 'Healthy',
-                'Vendera cooler',
+                'Sandstar AI cooler',
                 'Micro market',
             ])
         );

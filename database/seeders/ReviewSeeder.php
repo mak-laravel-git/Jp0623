@@ -38,7 +38,7 @@ class ReviewSeeder extends Seeder
                 'org' => 'Logistics company, TX',
             ],
             [
-                'quote' => 'The Vendera cooler was a hit with our night shift. Restocking has been on time every week.',
+                'quote' => 'The Sandstar AI cooler was a hit with our night shift. Restocking has been on time every week.',
                 'role' => 'Plant Supervisor',
                 'org' => 'Manufacturer, OH',
             ],

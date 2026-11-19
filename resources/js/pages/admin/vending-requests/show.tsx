@@ -7,9 +7,10 @@ import { ConfirmDeleteDialog } from '@/components/admin/confirm-delete-dialog';
 import { LeadPriceEditor } from '@/components/admin/lead-price-editor';
 import {
     LeadBuyerNote,
-    LeadSaleBadge,
-    type LeadBuyer,
+    LeadSaleBadge
+    
 } from '@/components/admin/lead-sale-badge';
+import type {LeadBuyer} from '@/components/admin/lead-sale-badge';
 import {
     OPERATOR_SMS_COLUMN_HINT,
     OPERATOR_SMS_COLUMN_LABEL,
@@ -235,7 +236,7 @@ export default function ShowVendingRequest({
                                 value={vendingRequest.food_on_site}
                             />
                             <Detail
-                                label="Comparing quotes"
+                                label="Comparing providers"
                                 value={vendingRequest.comparing_quotes}
                             />
                             <Detail

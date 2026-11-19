@@ -64,7 +64,7 @@ class HomePageData
                     'links' => [
                         ['label' => 'Vending machines', 'href' => '/machines'],
                         ['label' => 'Micro markets', 'href' => '/micro-markets'],
-                        ['label' => 'Vendera smart coolers', 'href' => '/machines/ai-cooler'],
+                        ['label' => 'Sandstar AI coolers', 'href' => '/machines/ai-cooler'],
                         ['label' => 'Office coffee', 'href' => '/office-coffee'],
                         ['label' => 'School vending', 'href' => '/schools'],
                     ],
@@ -146,7 +146,7 @@ class HomePageData
                 ],
                 [
                     'src' => '/images/machines/Vendera-Tap-Grab-Go-Cabinet.png',
-                    'alt' => 'Vendera smart cooler',
+                    'alt' => 'Sandstar AI cooler',
                 ],
                 [
                     'src' => '/images/machines/micro-market.jpg',
@@ -278,10 +278,10 @@ class HomePageData
             ],
             [
                 'id' => 'ai-cooler',
-                'name' => 'Vendera Smart Cooler',
+                'name' => 'Sandstar AI Cooler',
                 'kind' => 'cooler',
-                'type' => 'Vendera cooler',
-                'tags' => ['Vendera cooler', 'Tap and go'],
+                'type' => 'Sandstar AI cooler',
+                'tags' => ['Sandstar AI cooler', 'Tap and go'],
                 'desc' => 'Tap a card or phone, open the door and take what you want. Cameras and weight sensors charge only for what you took.',
                 'href' => '/machines/ai-cooler',
                 'image' => '/images/machines/Vendera-Tap-Grab-Go-Cabinet.png',
@@ -406,7 +406,7 @@ class HomePageData
                 'Drinks',
                 'Combo',
                 'Healthy',
-                'Vendera cooler',
+                'Sandstar AI cooler',
                 'Micro market',
                 'Coffee',
             ],
@@ -470,7 +470,7 @@ class HomePageData
                 ],
                 [
                     'q' => 'What types of machines do you offer?',
-                    'a' => 'Snack, drink and combo machines, Vendera smart coolers, micro markets and office coffee.',
+                    'a' => 'Snack, drink and combo machines, Sandstar AI coolers, micro markets and office coffee.',
                 ],
                 [
                     'q' => 'Can you support multi-location businesses?',
