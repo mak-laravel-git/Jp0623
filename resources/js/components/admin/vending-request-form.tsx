@@ -47,6 +47,7 @@ export function VendingRequestForm({
 }: VendingRequestFormProps) {
     const form = useForm(action, {
         location_type: locationTypes[0] ?? '',
+        location_type_note: '',
         business_name: '',
         address_or_zip: '',
         address: null as string | null,
@@ -77,6 +78,7 @@ export function VendingRequestForm({
         useState<LocationSuggestion | null>(null);
 
     const isSwitching = form.data.existing_vending !== 'No';
+    const isOtherLocationType = form.data.location_type === 'Other';
 
     function applyLocation(suggestion: LocationSuggestion | null) {
         setSelectedLocation(suggestion);
@@ -142,7 +144,14 @@ export function VendingRequestForm({
                     <Select
                         value={form.data.location_type}
                         onValueChange={(value) =>
-                            form.setData('location_type', value)
+                            form.setData((data) => ({
+                                ...data,
+                                location_type: value,
+                                location_type_note:
+                                    value === 'Other'
+                                        ? data.location_type_note
+                                        : '',
+                            }))
                         }
                     >
                         <SelectTrigger>
@@ -157,6 +166,32 @@ export function VendingRequestForm({
                         </SelectContent>
                     </Select>
                     <InputError message={form.errors.location_type} />
+
+                    {isOtherLocationType && (
+                        <div className="mt-2 grid gap-2">
+                            <Label htmlFor="location_type_note">
+                                Note (describe the location type)
+                            </Label>
+                            <Textarea
+                                id="location_type_note"
+                                value={form.data.location_type_note}
+                                onChange={(e) =>
+                                    form.setData(
+                                        'location_type_note',
+                                        e.target.value,
+                                    )
+                                }
+                                rows={2}
+                                maxLength={500}
+                                placeholder="e.g. Car dealership service lounge"
+                                aria-invalid={!!form.errors.location_type_note}
+                                required
+                            />
+                            <InputError
+                                message={form.errors.location_type_note}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 <div className="grid gap-2">

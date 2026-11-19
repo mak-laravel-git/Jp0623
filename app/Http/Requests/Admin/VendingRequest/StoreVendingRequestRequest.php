@@ -19,7 +19,12 @@ class StoreVendingRequestRequest extends FormRequest
         $employees = $this->input('employees_on_site');
         $visitors = $this->input('daily_visitors');
 
+        $note = $this->input('location_type') === VendingRequest::OTHER_LOCATION_TYPE
+            ? trim((string) $this->input('location_type_note'))
+            : null;
+
         $this->merge([
+            'location_type_note' => $note === '' ? null : $note,
             'employees_on_site' => $employees === '' || $employees === null ? null : $employees,
             'daily_visitors' => $visitors === '' || $visitors === null ? null : $visitors,
             'terms_accepted' => true,
@@ -38,6 +43,12 @@ class StoreVendingRequestRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::exists('location_types', 'name')->where(fn ($query) => $query->where('is_active', true)),
+            ],
+            'location_type_note' => [
+                'nullable',
+                'string',
+                'max:500',
+                Rule::requiredIf(fn (): bool => $this->input('location_type') === VendingRequest::OTHER_LOCATION_TYPE),
             ],
             'business_name' => ['required', 'string', 'max:255'],
             'address_or_zip' => ['nullable', 'string', 'max:255'],
@@ -102,6 +113,7 @@ class StoreVendingRequestRequest extends FormRequest
     {
         return [
             'location_type' => 'location type',
+            'location_type_note' => 'location type note',
             'business_name' => 'business name',
             'address_or_zip' => 'address',
             'address' => 'address',

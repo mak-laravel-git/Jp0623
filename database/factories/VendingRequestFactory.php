@@ -62,6 +62,14 @@ class VendingRequestFactory extends Factory
         ];
     }
 
+    public function otherLocationType(?string $note = null): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'location_type' => VendingRequest::OTHER_LOCATION_TYPE,
+            'location_type_note' => $note ?? fake()->sentence(3),
+        ]);
+    }
+
     public function unpriced(): static
     {
         return $this->state(fn (array $attributes): array => [

@@ -45,7 +45,7 @@ trait DescribesLeadPurchase
 
         return [
             'id' => LeadService::publicIdFor($this->purchase->leadable_type, $this->purchase->leadable_id),
-            'type' => $isCoffee ? 'Office coffee' : (string) $lead->location_type,
+            'type' => $isCoffee ? 'Office coffee' : $lead->locationTypeLabel(),
             'business' => (string) $lead->business_name,
             'contact_name' => (string) $lead->contact_name,
             'email' => (string) $lead->email,

@@ -185,7 +185,7 @@ class LeadService
         return [
             'id' => $this->publicId($lead),
             'source' => $this->sourceOf($lead),
-            'type' => $isCoffee ? 'Office coffee' : $lead->location_type,
+            'type' => $isCoffee ? 'Office coffee' : $lead->locationTypeLabel(),
             'cat' => $isCoffee ? 'Coffee' : $lead->location_type,
             'city' => (string) $lead->city,
             'st' => (string) $lead->state,
@@ -216,7 +216,7 @@ class LeadService
             'payment_status' => $isPaid ? 'paid' : 'pending',
             'purchased_at' => ($purchase->purchased_at ?? $purchase->created_at)->format('M j'),
             'name' => $isPaid ? $lead->business_name : null,
-            'type' => $isCoffee ? 'Office coffee' : $lead->location_type,
+            'type' => $isCoffee ? 'Office coffee' : $lead->locationTypeLabel(),
             'city' => (string) $lead->city,
             'st' => (string) $lead->state,
             'zip' => $isPaid ? $postalCode : Str::substr($postalCode, 0, 3),

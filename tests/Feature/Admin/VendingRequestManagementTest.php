@@ -193,6 +193,95 @@ test('admin can create a vending request with a custom price', function () {
     Queue::assertPushed(NotifyNearbyOperatorsOfLead::class);
 });
 
+/**
+ * @return array<string, mixed>
+ */
+function adminVendingRequestPayload(array $overrides = []): array
+{
+    return array_merge([
+        'location_type' => 'Office',
+        'business_name' => 'Manual Lead Co',
+        'address_or_zip' => '100 Main St, Houston, TX 77002',
+        'address' => '100 Main St',
+        'city' => 'Houston',
+        'state' => 'TX',
+        'postal_code' => '77002',
+        'latitude' => 29.7604,
+        'longitude' => -95.3698,
+        'placement' => 'Inside',
+        'food_on_site' => 'No',
+        'comparing_quotes' => 'Yes',
+        'machine_interests' => ['Snack'],
+        'machine_count' => '2',
+        'existing_vending' => 'No',
+        'contact_name' => 'Alex Admin',
+        'email' => 'alex@example.com',
+        'phone' => '555-0100',
+        'price' => 225,
+    ], $overrides);
+}
+
+test('choosing Other requires a note describing the location type', function () {
+    Queue::fake();
+    LocationType::factory()->create(['name' => 'Other', 'is_active' => true]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.vending-requests.store'), adminVendingRequestPayload([
+            'location_type' => 'Other',
+            'location_type_note' => '   ',
+        ]))
+        ->assertSessionHasErrors('location_type_note');
+
+    expect(VendingRequest::query()->count())->toBe(0);
+});
+
+test('a vending request with the Other location type stores its note', function () {
+    Queue::fake();
+    LocationType::factory()->create(['name' => 'Other', 'is_active' => true]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.vending-requests.store'), adminVendingRequestPayload([
+            'location_type' => 'Other',
+            'location_type_note' => 'Car dealership service lounge',
+        ]))
+        ->assertSessionHasNoErrors()
+        ->assertRedirect();
+
+    $request = VendingRequest::query()->sole();
+
+    expect($request->location_type_note)->toBe('Car dealership service lounge')
+        ->and($request->locationTypeLabel())->toBe('Other: Car dealership service lounge');
+});
+
+test('a note sent with a location type other than Other is discarded', function () {
+    Queue::fake();
+    LocationType::factory()->create(['name' => 'Office', 'is_active' => true]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.vending-requests.store'), adminVendingRequestPayload([
+            'location_type' => 'Office',
+            'location_type_note' => 'Should not be kept',
+        ]))
+        ->assertSessionHasNoErrors();
+
+    $request = VendingRequest::query()->sole();
+
+    expect($request->location_type_note)->toBeNull()
+        ->and($request->locationTypeLabel())->toBe('Office');
+});
+
+test('the admin lead page exposes the location type note', function () {
+    $request = VendingRequest::factory()->otherLocationType('Church hall')->create();
+
+    $this->actingAs($this->admin)
+        ->get(route('admin.vending-requests.show', $request))
+        ->assertInertia(
+            fn (Assert $page) => $page
+                ->where('vendingRequest.location_type', 'Other')
+                ->where('vendingRequest.location_type_note', 'Church hall')
+        );
+});
+
 test('admin can update lead price until the lead is sold', function () {
     Queue::fake();
 
