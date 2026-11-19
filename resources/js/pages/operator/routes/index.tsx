@@ -1,5 +1,6 @@
-import { Head } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -27,11 +28,12 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner';
 import { dashboard } from '@/routes';
 import { index as routesIndex } from '@/routes/routes';
+import { store as storeInquiry } from '@/routes/routes/inquiries';
 
 interface RouteListing {
+    listing_id: number;
     id: string;
     city: string;
     about: string;
@@ -43,17 +45,30 @@ interface RouteListing {
     listed: string;
 }
 
+interface MemberContact {
+    name: string;
+    email: string;
+    phone: string;
+}
+
+const DEFAULT_MESSAGE =
+    "I'm interested in this route. Please send more details.";
+
 function money(value: number): string {
     return `$${value.toLocaleString('en-US')}`;
 }
 
-export default function RoutesIndex({ routes }: { routes: RouteListing[] }) {
+export default function RoutesIndex({
+    routes,
+    memberContact,
+}: {
+    routes: RouteListing[];
+    memberContact: MemberContact;
+}) {
     const [query, setQuery] = useState('');
     const [maxAsk, setMaxAsk] = useState('99999999');
     const [selected, setSelected] = useState<RouteListing | null>(null);
-    const [message, setMessage] = useState(
-        "I'm interested in this route. Please send more details.",
-    );
+    const [inquiryFor, setInquiryFor] = useState<RouteListing | null>(null);
 
     const filtered = useMemo(() => {
         const max = Number(maxAsk);
@@ -75,12 +90,6 @@ export default function RoutesIndex({ routes }: { routes: RouteListing[] }) {
             );
         });
     }, [routes, query, maxAsk]);
-
-    const handleInquiry = () => {
-        toast.success('Inquiry sent. The route broker will contact you.');
-        setSelected(null);
-        setMessage("I'm interested in this route. Please send more details.");
-    };
 
     return (
         <>
@@ -225,20 +234,6 @@ export default function RoutesIndex({ routes }: { routes: RouteListing[] }) {
                                 <Detail label="Listed by" value="Route broker" />
                             </dl>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="inquiry">
-                                    Message to the broker
-                                </Label>
-                                <Textarea
-                                    id="inquiry"
-                                    rows={3}
-                                    value={message}
-                                    onChange={(event) =>
-                                        setMessage(event.target.value)
-                                    }
-                                />
-                            </div>
-
                             <DialogFooter>
                                 <Button
                                     variant="outline"
@@ -248,7 +243,10 @@ export default function RoutesIndex({ routes }: { routes: RouteListing[] }) {
                                 </Button>
                                 <Button
                                     className="bg-brass text-brass-ink hover:bg-brass/90"
-                                    onClick={handleInquiry}
+                                    onClick={() => {
+                                        setInquiryFor(selected);
+                                        setSelected(null);
+                                    }}
                                 >
                                     Send inquiry
                                 </Button>
@@ -257,7 +255,174 @@ export default function RoutesIndex({ routes }: { routes: RouteListing[] }) {
                     ) : null}
                 </DialogContent>
             </Dialog>
+
+            {inquiryFor ? (
+                <InquiryDialog
+                    listing={inquiryFor}
+                    contact={memberContact}
+                    onClose={() => setInquiryFor(null)}
+                />
+            ) : null}
         </>
+    );
+}
+
+function InquiryDialog({
+    listing,
+    contact,
+    onClose,
+}: {
+    listing: RouteListing;
+    contact: MemberContact;
+    onClose: () => void;
+}) {
+    const form = useForm(storeInquiry(listing.listing_id), {
+        contact_name: contact.name,
+        contact_email: contact.email,
+        contact_phone: contact.phone,
+        message: DEFAULT_MESSAGE,
+    });
+
+    const handleSubmit = (event: React.FormEvent) => {
+        event.preventDefault();
+
+        if (form.processing) {
+            return;
+        }
+
+        form.submit({
+            preserveScroll: true,
+            onSuccess: () => onClose(),
+        });
+    };
+
+    return (
+        <Dialog
+            open
+            onOpenChange={(open) => {
+                if (!open && !form.processing) {
+                    onClose();
+                }
+            }}
+        >
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <DialogHeader>
+                        <DialogTitle>Send inquiry</DialogTitle>
+                        <DialogDescription>
+                            Review your contact details and write a message. We
+                            will get back to you about this listing.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                            <Label htmlFor="inquiry-listing-id">
+                                Listing ID
+                            </Label>
+                            <Input
+                                id="inquiry-listing-id"
+                                value={listing.id}
+                                readOnly
+                                className="bg-muted/50"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="inquiry-listing-city">City</Label>
+                            <Input
+                                id="inquiry-listing-city"
+                                value={listing.city}
+                                readOnly
+                                className="bg-muted/50"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="inquiry-name">Your name</Label>
+                        <Input
+                            id="inquiry-name"
+                            autoComplete="name"
+                            value={form.data.contact_name}
+                            onChange={(event) =>
+                                form.setData('contact_name', event.target.value)
+                            }
+                            aria-invalid={!!form.errors.contact_name}
+                        />
+                        <InputError message={form.errors.contact_name} />
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                            <Label htmlFor="inquiry-email">Your email</Label>
+                            <Input
+                                id="inquiry-email"
+                                type="email"
+                                autoComplete="email"
+                                value={form.data.contact_email}
+                                onChange={(event) =>
+                                    form.setData(
+                                        'contact_email',
+                                        event.target.value,
+                                    )
+                                }
+                                aria-invalid={!!form.errors.contact_email}
+                            />
+                            <InputError message={form.errors.contact_email} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="inquiry-phone">Your phone</Label>
+                            <Input
+                                id="inquiry-phone"
+                                type="tel"
+                                autoComplete="tel"
+                                value={form.data.contact_phone}
+                                onChange={(event) =>
+                                    form.setData(
+                                        'contact_phone',
+                                        event.target.value,
+                                    )
+                                }
+                                aria-invalid={!!form.errors.contact_phone}
+                            />
+                            <InputError message={form.errors.contact_phone} />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="inquiry-message">Message</Label>
+                        <Textarea
+                            id="inquiry-message"
+                            rows={4}
+                            value={form.data.message}
+                            onChange={(event) =>
+                                form.setData('message', event.target.value)
+                            }
+                            aria-invalid={!!form.errors.message}
+                        />
+                        <InputError message={form.errors.message} />
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={onClose}
+                            disabled={form.processing}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            className="bg-brass text-brass-ink hover:bg-brass/90"
+                            disabled={form.processing}
+                        >
+                            {form.processing ? 'Sending…' : 'Send inquiry'}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
     );
 }
 

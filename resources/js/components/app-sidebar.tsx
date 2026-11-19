@@ -10,6 +10,7 @@ import {
     LayoutGrid,
     MapPinned,
     MapPin,
+    MessageSquare,
     Newspaper,
     Package,
     Receipt,
@@ -61,6 +62,7 @@ import adminMachineFaqs from '@/routes/admin/machine-faqs';
 import adminMachines from '@/routes/admin/machines';
 import adminOfficeCoffeeFaqs from '@/routes/admin/office-coffee-faqs';
 import adminProducts from '@/routes/admin/products';
+import adminRouteInquiries from '@/routes/admin/route-inquiries';
 import adminRouteListings from '@/routes/admin/route-listings';
 import adminUserManagement from '@/routes/admin/user-management';
 import adminCoffeeServiceRequests from '@/routes/admin/coffee-service-requests';
@@ -259,6 +261,12 @@ export function AppSidebar() {
                 href: adminRouteListings.index(),
                 icon: Route,
                 permissions: [PERMISSIONS.ROUTE_LISTINGS.INDEX],
+            },
+            {
+                title: 'Route Inquiries',
+                href: adminRouteInquiries.index(),
+                icon: MessageSquare,
+                permissions: [PERMISSIONS.ROUTE_INQUIRIES.INDEX],
             },
             {
                 title: 'Cities',

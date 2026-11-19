@@ -130,6 +130,24 @@ test('members only see active route listings on the established locations page',
         );
 });
 
+test('members see the newest listings first with the fields the price filter needs', function () {
+    RouteListing::factory()->create(['city' => 'Older, TX', 'listed_at' => '2026-09-01', 'asking_price' => 84000]);
+    RouteListing::factory()->create(['city' => 'Newer, FL', 'listed_at' => '2026-10-25', 'asking_price' => 210000]);
+
+    $member = User::factory()->create();
+    $member->assignRole(RoleEnum::USER->value);
+
+    $this->actingAs($member)
+        ->get(route('routes.index'))
+        ->assertInertia(
+            fn (Assert $page) => $page
+                ->where('routes.0.city', 'Newer, FL')
+                ->where('routes.0.ask', 210000)
+                ->where('routes.1.city', 'Older, TX')
+                ->where('routes.1.ask', 84000)
+        );
+});
+
 test('members cannot create route listings', function () {
     $member = User::factory()->create();
     $member->assignRole(RoleEnum::USER->value);

@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\RouteListingFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -37,6 +38,14 @@ class RouteListing extends Model
         'is_active',
         'listed_at',
     ];
+
+    /**
+     * @return HasMany<RouteListingInquiry, $this>
+     */
+    public function inquiries(): HasMany
+    {
+        return $this->hasMany(RouteListingInquiry::class);
+    }
 
     /**
      * @return array<string, string>

@@ -30,7 +30,7 @@ class RouteListingService
     /**
      * Active listings in the shape the member "Established locations & routes for sale" page renders.
      *
-     * @return list<array{id: string, city: string, about: string, locs: int, machines: int, rev: int, ask: int, fin: string, listed: string}>
+     * @return list<array{listing_id: int, id: string, city: string, about: string, locs: int, machines: int, rev: int, ask: int, fin: string, listed: string}>
      */
     public function listActiveForMembers(): array
     {
@@ -40,6 +40,7 @@ class RouteListingService
             ->latest('id')
             ->get()
             ->map(fn (RouteListing $listing): array => [
+                'listing_id' => $listing->id,
                 'id' => 'R-'.$listing->id,
                 'city' => $listing->city,
                 'about' => $listing->about,

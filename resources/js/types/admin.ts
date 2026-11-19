@@ -176,6 +176,31 @@ export interface AdminRouteListing {
     updated_at: string;
 }
 
+export type RouteInquiryStatus = 'pending' | 'contacted' | 'closed';
+
+export interface AdminRouteInquiry {
+    id: number;
+    route_listing_id: number | null;
+    user_id: number;
+    contact_name: string;
+    contact_email: string;
+    contact_phone: string | null;
+    listing_reference: string;
+    listing_city: string;
+    listing_asking_price: number;
+    message: string;
+    status: RouteInquiryStatus;
+    created_at: string;
+    updated_at: string;
+    route_listing?: {
+        id: number;
+        city: string;
+        about: string;
+        asking_price: number;
+        is_active: boolean;
+    } | null;
+}
+
 export interface AdminLocationType {
     id: number;
     name: string;

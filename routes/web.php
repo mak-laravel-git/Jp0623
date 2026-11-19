@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\RouteInquiryController as AdminRouteInquiryController;
 use App\Http\Controllers\Admin\RouteListingController;
 use App\Http\Controllers\Admin\SmsTemplateController;
 use App\Http\Controllers\Admin\UserController;
@@ -53,6 +54,7 @@ use App\Http\Controllers\Operator\BillingController;
 use App\Http\Controllers\Operator\LeadController;
 use App\Http\Controllers\Operator\MembershipCheckoutController;
 use App\Http\Controllers\Operator\RouteController;
+use App\Http\Controllers\Operator\RouteInquiryController;
 use App\Http\Controllers\Operator\SubscriptionController;
 use App\Http\Controllers\PostAttachmentController;
 use App\Http\Controllers\Webhooks\SquareWebhookController;
@@ -122,6 +124,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(['membership.active', 'throttle:10,1'])
         ->name('leads.purchase');
     Route::get('routes', [RouteController::class, 'index'])->name('routes.index');
+    Route::post('routes/{route_listing}/inquiries', [RouteInquiryController::class, 'store'])
+        ->whereNumber('route_listing')
+        ->middleware('throttle:10,1')
+        ->name('routes.inquiries.store');
     Route::get('account', [AccountController::class, 'index'])->name('account.index');
     Route::get('account/location', [AccountController::class, 'location'])->name('account.location');
     Route::put('account/location', [AccountController::class, 'updateLocation'])
@@ -529,6 +535,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->middleware(['permission:'.PermissionEnum::ROUTE_LISTINGS_EDIT->value, HandlePrecognitiveRequests::class]);
             Route::delete('route-listings/{route_listing}', 'destroy')->name('route-listings.destroy')
                 ->middleware('permission:'.PermissionEnum::ROUTE_LISTINGS_DELETE->value);
+        });
+
+        // Route inquiries — member inquiries about route listings, with a status the admin works through.
+        Route::controller(AdminRouteInquiryController::class)->group(function () {
+            Route::get('route-inquiries', 'index')->name('route-inquiries.index')
+                ->middleware('permission:'.PermissionEnum::ROUTE_INQUIRIES_INDEX->value);
+            Route::get('route-inquiries/{route_inquiry}', 'show')->name('route-inquiries.show')
+                ->middleware('permission:'.PermissionEnum::ROUTE_INQUIRIES_VIEW->value);
+            Route::put('route-inquiries/{route_inquiry}', 'update')->name('route-inquiries.update')
+                ->middleware('permission:'.PermissionEnum::ROUTE_INQUIRIES_EDIT->value);
         });
 
     });

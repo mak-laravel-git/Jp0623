@@ -155,6 +155,11 @@ enum PermissionEnum: string
     case ROUTE_LISTINGS_EDIT = 'route-listings.edit';
     case ROUTE_LISTINGS_DELETE = 'route-listings.delete';
 
+    // ROUTE INQUIRIES (member inquiries about route listings)
+    case ROUTE_INQUIRIES_INDEX = 'route-inquiries.index';
+    case ROUTE_INQUIRIES_VIEW = 'route-inquiries.view';
+    case ROUTE_INQUIRIES_EDIT = 'route-inquiries.edit';
+
     // OPERATOR SMS
     case OPERATOR_SMS_INDEX = 'operator-sms.index';
     case OPERATOR_SMS_SEND = 'operator-sms.send';
@@ -304,6 +309,10 @@ enum PermissionEnum: string
             self::ROUTE_LISTINGS_CREATE,
             self::ROUTE_LISTINGS_EDIT,
             self::ROUTE_LISTINGS_DELETE => 'Route Listings',
+
+            self::ROUTE_INQUIRIES_INDEX,
+            self::ROUTE_INQUIRIES_VIEW,
+            self::ROUTE_INQUIRIES_EDIT => 'Route Inquiries',
 
             self::OPERATOR_SMS_INDEX,
             self::OPERATOR_SMS_SEND => 'Operator SMS',
