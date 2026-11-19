@@ -116,10 +116,10 @@ class MachineSeeder extends Seeder
             ],
             [
                 'id' => 'ai-cooler',
-                'name' => 'Vendera Smart Cooler',
+                'name' => 'Sandstar AI Cooler',
                 'kind' => 'cooler',
-                'type' => 'Vendera cooler',
-                'tags' => ['Vendera cooler', 'Tap and go'],
+                'type' => 'Sandstar AI cooler',
+                'tags' => ['Sandstar AI cooler', 'Tap and go'],
                 'desc' => 'Tap a card or phone, open the door and take what you want. Cameras and weight sensors charge only for what you took.',
                 'image' => '/images/machines/Vendera-Tap-Grab-Go-Cabinet.png',
                 'capacity' => 'Up to 250 items',

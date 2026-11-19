@@ -18,7 +18,7 @@ class MachineCategorySeeder extends Seeder
             'Snack',
             'Drink',
             'Healthy',
-            'Vendera cooler',
+            'Sandstar AI cooler',
             'Micro market',
         ];
 

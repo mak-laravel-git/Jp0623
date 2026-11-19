@@ -84,7 +84,7 @@ test('user management create form receives active machine types', function () {
                 'Snack',
                 'Drink',
                 'Healthy',
-                'Vendera cooler',
+                'Sandstar AI cooler',
                 'Micro market',
             ])
         );

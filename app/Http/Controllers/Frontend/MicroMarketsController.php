@@ -14,7 +14,7 @@ class MicroMarketsController extends Controller
     /** Product kinds shown in "From breakfast to late shift." */
     private const OFFERING_KINDS = ['food', 'drink', 'healthy', 'pastry', 'coffee'];
 
-    /** Machine slugs shown in "Micro markets & Vendera coolers: we offer both." */
+    /** Machine slugs shown in "Micro markets & Sandstar AI coolers: we offer both." */
     private const COMPARE_MACHINE_SLUGS = ['micro-market', 'ai-cooler'];
 
     public function __construct(

@@ -41,7 +41,7 @@ test('article detail page renders body paragraphs and related articles', functio
             ->component('frontend/resources/show')
             ->has('site')
             ->where('article.slug', 'ai-vs-market')
-            ->where('article.title', 'Vendera coolers vs. micro markets: which one fits?')
+            ->where('article.title', 'Sandstar AI coolers vs. micro markets: which one fits?')
             ->has('article.paragraphs', 3)
             ->has('related', 2)
             ->where('related', fn ($items) => collect($items)->pluck('id')->doesntContain('ai-vs-market'))

@@ -26,10 +26,10 @@ class ArticleSeeder extends Seeder
             [
                 'slug' => 'ai-vs-market',
                 'category' => 'Smart & AI vending',
-                'title' => 'Vendera coolers vs. micro markets: which one fits?',
+                'title' => 'Sandstar AI coolers vs. micro markets: which one fits?',
                 'excerpt' => 'A simple guide based on headcount, space and food needs.',
                 'body' => "Both options give people fresh food and drinks around the clock, but they suit different spaces. The right choice mostly comes down to headcount, floor space and how much fresh food you want to offer.\n\n"
-                    ."A Vendera smart cooler is compact. Tap, open the door and take what you want. It works well for smaller teams and tight spaces where you still want chilled and fresh items.\n\n"
+                    ."A Sandstar AI cooler is compact. Tap, open the door and take what you want. It works well for smaller teams and tight spaces where you still want chilled and fresh items.\n\n"
                     .'A micro market is a self-checkout store with open shelves. It needs more room and a larger group of regular users, and in return it carries a much wider range of food, snacks and drinks. If you have more than a couple of hundred people on site and a spare corner, a micro market is usually the better fit.',
                 'sort_order' => 2,
             ],
