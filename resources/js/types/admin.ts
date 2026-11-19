@@ -161,6 +161,21 @@ export interface AdminContactMessage {
     updated_at: string;
 }
 
+export interface AdminRouteListing {
+    id: number;
+    city: string;
+    about: string;
+    locations_count: number;
+    machines_count: number;
+    annual_revenue: number;
+    asking_price: number;
+    seller_financing: boolean;
+    is_active: boolean;
+    listed_at: string;
+    created_at: string;
+    updated_at: string;
+}
+
 export interface AdminLocationType {
     id: number;
     name: string;

@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\RouteListingController;
 use App\Http\Controllers\Admin\SmsTemplateController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VendingRequestController as AdminVendingRequestController;
@@ -121,7 +122,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(['membership.active', 'throttle:10,1'])
         ->name('leads.purchase');
     Route::get('routes', [RouteController::class, 'index'])->name('routes.index');
-    Route::get('routes/sell', [RouteController::class, 'sell'])->name('routes.sell');
     Route::get('account', [AccountController::class, 'index'])->name('account.index');
     Route::get('account/location', [AccountController::class, 'location'])->name('account.location');
     Route::put('account/location', [AccountController::class, 'updateLocation'])
@@ -513,6 +513,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->middleware(['permission:'.PermissionEnum::LOCATION_TYPES_EDIT->value, HandlePrecognitiveRequests::class]);
             Route::delete('location-types/{location_type}', 'destroy')->name('location-types.destroy')
                 ->middleware('permission:'.PermissionEnum::LOCATION_TYPES_DELETE->value);
+        });
+
+        // Route listings — "Established locations & routes for sale" shown to members (admin-managed only).
+        Route::controller(RouteListingController::class)->group(function () {
+            Route::get('route-listings', 'index')->name('route-listings.index')
+                ->middleware('permission:'.PermissionEnum::ROUTE_LISTINGS_INDEX->value);
+            Route::get('route-listings/create', 'create')->name('route-listings.create')
+                ->middleware('permission:'.PermissionEnum::ROUTE_LISTINGS_CREATE->value);
+            Route::post('route-listings', 'store')->name('route-listings.store')
+                ->middleware(['permission:'.PermissionEnum::ROUTE_LISTINGS_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('route-listings/{route_listing}/edit', 'edit')->name('route-listings.edit')
+                ->middleware('permission:'.PermissionEnum::ROUTE_LISTINGS_EDIT->value);
+            Route::put('route-listings/{route_listing}', 'update')->name('route-listings.update')
+                ->middleware(['permission:'.PermissionEnum::ROUTE_LISTINGS_EDIT->value, HandlePrecognitiveRequests::class]);
+            Route::delete('route-listings/{route_listing}', 'destroy')->name('route-listings.destroy')
+                ->middleware('permission:'.PermissionEnum::ROUTE_LISTINGS_DELETE->value);
         });
 
     });

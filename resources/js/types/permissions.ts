@@ -157,6 +157,12 @@ export const PERMISSIONS = {
         EDIT: 'location-types.edit',
         DELETE: 'location-types.delete',
     },
+    ROUTE_LISTINGS: {
+        INDEX: 'route-listings.index',
+        CREATE: 'route-listings.create',
+        EDIT: 'route-listings.edit',
+        DELETE: 'route-listings.delete',
+    },
     OPERATOR_SMS: {
         INDEX: 'operator-sms.index',
         SEND: 'operator-sms.send',

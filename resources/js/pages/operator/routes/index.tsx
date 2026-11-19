@@ -84,16 +84,16 @@ export default function RoutesIndex({ routes }: { routes: RouteListing[] }) {
 
     return (
         <>
-            <Head title="Routes for sale" />
+            <Head title="Established locations & routes for sale" />
 
             <div className="w-full space-y-6 px-4 py-6 sm:px-6 lg:px-8">
                 <div>
                     <h1 className="text-3xl font-extrabold tracking-tight">
-                        Routes for sale
+                        Established locations & routes for sale
                     </h1>
                     <p className="mt-1 max-w-3xl text-muted-foreground">
-                        Existing vending routes listed by owners and route
-                        brokers.
+                        Established vending locations and routes currently
+                        available for purchase.
                     </p>
                 </div>
 
@@ -275,6 +275,9 @@ function Detail({ label, value }: { label: string; value: string }) {
 RoutesIndex.layout = {
     breadcrumbs: [
         { title: 'Dashboard', href: dashboard() },
-        { title: 'Routes for sale', href: routesIndex() },
+        {
+            title: 'Established locations & routes for sale',
+            href: routesIndex(),
+        },
     ],
 };
