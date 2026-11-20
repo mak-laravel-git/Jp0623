@@ -3,6 +3,7 @@ import { Form, Head } from '@inertiajs/react';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { SPAM_NOTE } from '@/lib/verification-copy';
 import { logout } from '@/routes';
 import { send } from '@/routes/verification';
 
@@ -41,6 +42,5 @@ export default function VerifyEmail({ status }: { status?: string }) {
 
 VerifyEmail.layout = {
     title: 'Verify email',
-    description:
-        'Please verify your email address by clicking on the link we just emailed to you.',
+    description: `Please verify your email address by clicking on the link we just emailed to you. ${SPAM_NOTE}`,
 };

@@ -7,6 +7,8 @@ Use this 6-digit code to finish creating your operator account. It expires in 10
 **{{ $code }}**
 </x-mail::panel>
 
+Can't find our emails in your inbox? Check your spam or junk folder.
+
 If you did not request this code, you can ignore this email.
 
 Thanks,<br>

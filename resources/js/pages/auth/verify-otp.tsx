@@ -4,8 +4,9 @@ import type { ClipboardEvent, KeyboardEvent } from 'react';
 import TextLink from '@/components/text-link';
 import { BrandButton } from '@/components/frontend/brand-button';
 import { Spinner } from '@/components/ui/spinner';
-import { logout } from '@/routes';
 import { cn } from '@/lib/utils';
+import { SPAM_NOTE } from '@/lib/verification-copy';
+import { logout } from '@/routes';
 
 function xsrfToken(): string {
     const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
@@ -154,7 +155,7 @@ export default function VerifyOtp({ email }: Props) {
                     <span className="font-semibold text-brand-ink">
                         {email}
                     </span>
-                    .
+                    . {SPAM_NOTE}
                 </p>
                 {message ? (
                     <p className="rounded-lg bg-good-bg p-3 text-sm font-semibold text-good">
