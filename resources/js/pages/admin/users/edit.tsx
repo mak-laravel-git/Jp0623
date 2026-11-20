@@ -68,7 +68,7 @@ export default function EditUser({
                             company_name: operatorProfile?.company_name,
                             owns_machines: operatorProfile?.owns_machines,
                             machine_types: operatorProfile?.machine_types,
-                            machines_needed: operatorProfile?.machines_needed,
+                            leads_needed: operatorProfile?.leads_needed,
                             primary_city: operatorProfile?.primary_city,
                         }}
                         onCancel={() => router.visit(routes.index().url)}

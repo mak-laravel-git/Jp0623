@@ -57,7 +57,7 @@ class UserSeeder extends Seeder
                 'phone' => '(555) 010-0000',
                 'owns_machines' => true,
                 'machine_types' => ['Combo', 'Snack'],
-                'machines_needed' => '1',
+                'leads_needed' => '1',
                 'primary_city' => 'Minneapolis, Minnesota',
                 'address' => null,
                 'city' => 'Minneapolis',

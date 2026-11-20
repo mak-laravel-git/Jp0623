@@ -23,7 +23,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { OPERATOR_MACHINES_NEEDED } from '@/lib/operator-profile';
+import { OPERATOR_LEADS_NEEDED } from '@/lib/operator-profile';
 import { cn } from '@/lib/utils';
 import { avatarUrl, SUPER_ADMIN_ROLE } from '@/types/admin';
 import type { AdminOperatorProfile, RoleRef } from '@/types/admin';
@@ -37,7 +37,7 @@ interface UserFormDefaults {
     company_name?: string;
     owns_machines?: boolean;
     machine_types?: string[];
-    machines_needed?: string;
+    leads_needed?: string;
     primary_city?: string;
 }
 
@@ -129,9 +129,9 @@ export function UserForm({
             defaults?.owns_machines ?? operatorProfile?.owns_machines ?? false,
         machine_types:
             defaults?.machine_types ?? operatorProfile?.machine_types ?? [],
-        machines_needed:
-            defaults?.machines_needed ??
-            operatorProfile?.machines_needed ??
+        leads_needed:
+            defaults?.leads_needed ??
+            operatorProfile?.leads_needed ??
             '1',
         primary_city:
             defaults?.primary_city ?? operatorProfile?.primary_city ?? '',
@@ -440,27 +440,27 @@ export function UserForm({
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="machines_needed">
-                            Machines needed
+                        <Label htmlFor="leads_needed">
+                            How many quality leads are you looking for?
                         </Label>
                         <Select
-                            value={form.data.machines_needed}
+                            value={form.data.leads_needed}
                             onValueChange={(value) =>
-                                form.setData('machines_needed', value)
+                                form.setData('leads_needed', value)
                             }
                         >
-                            <SelectTrigger id="machines_needed">
+                            <SelectTrigger id="leads_needed">
                                 <SelectValue placeholder="Select quantity" />
                             </SelectTrigger>
                             <SelectContent>
-                                {OPERATOR_MACHINES_NEEDED.map((qty) => (
+                                {OPERATOR_LEADS_NEEDED.map((qty) => (
                                     <SelectItem key={qty} value={qty}>
                                         {qty}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
-                        <InputError message={form.errors.machines_needed} />
+                        <InputError message={form.errors.leads_needed} />
                     </div>
                 </>
             ) : (

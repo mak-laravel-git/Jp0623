@@ -49,7 +49,7 @@ export interface AdminOperatorProfile {
     phone: string | null;
     owns_machines: boolean;
     machine_types: string[];
-    machines_needed: string;
+    leads_needed: string;
     primary_city: string;
     address: string | null;
     city: string | null;

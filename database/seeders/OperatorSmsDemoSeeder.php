@@ -125,7 +125,7 @@ class OperatorSmsDemoSeeder extends Seeder
                     'phone' => $data['phone'],
                     'owns_machines' => true,
                     'machine_types' => ['Snack', 'Drinks'],
-                    'machines_needed' => '2',
+                    'leads_needed' => '2',
                     'primary_city' => trim($place['city'].', '.$place['state'], ', '),
                     'address' => $place['address'],
                     'city' => $place['city'] !== '' ? $place['city'] : explode(',', $data['query'])[0],
