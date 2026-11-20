@@ -51,7 +51,7 @@ class HeroSectionSeeder extends Seeder
                 'alt' => 'Snack and drink combo machine',
             ],
             [
-                'image' => '/images/machines/Alpine-ST5000.png',
+                'image' => '/images/machines/Alpine-ST50000.jpg',
                 'alt' => 'Alpine snack and beverage machine',
             ],
             [

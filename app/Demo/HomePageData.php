@@ -144,7 +144,7 @@ class HomePageData
                     'title' => 'Vending machines',
                     'text' => 'Snack, drink and combo machines with card and phone pay.',
                     'href' => '/machines',
-                    'image' => '/images/machines/Alpine-ST5000.png',
+                    'image' => '/images/machines/Alpine-ST50000.jpg',
                 ],
                 [
                     'title' => 'Micro markets',

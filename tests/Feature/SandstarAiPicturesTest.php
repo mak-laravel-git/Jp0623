@@ -2,12 +2,14 @@
 
 use App\Models\HeroImage;
 use App\Models\HeroSection;
+use App\Models\LocationType;
 use App\Models\Machine;
 use App\Models\MachineCategory;
 use Database\Seeders\HeroSectionSeeder;
 use Database\Seeders\MachineCategorySeeder;
 use Database\Seeders\MachineSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\File;
 
 uses(RefreshDatabase::class);
 
@@ -47,6 +49,52 @@ test('every picture the seeders reference exists and none is a Vendera picture',
 
 test('the Vendera picture files are gone from the public folder', function () {
     expect(glob(public_path('images/*/*Vendera*')))->toBeEmpty();
+
+    foreach ([
+        'images/machines/Alpine-ST5000.png',
+        'images/machines/healthy-vending.png',
+        'images/machines/coffee.png',
+        'images/hero/jp0623-attachments/1000014854.jpg',
+        'images/hero/jp0623-attachments/1000014856.jpg',
+    ] as $removed) {
+        expect(public_path($removed))->not->toBeFile();
+    }
+});
+
+test('every site picture referenced by seeders, demo data and components exists', function () {
+    $missing = [];
+
+    foreach ([app_path('Demo'), database_path('seeders'), resource_path('js/components'), resource_path('js/pages')] as $directory) {
+        foreach (File::allFiles($directory) as $file) {
+            preg_match_all('#[\'"](/images/[^\'"\s]+\.(?:png|jpe?g|webp|svg))[\'"]#', $file->getContents(), $matches);
+
+            foreach ($matches[1] as $path) {
+                if (! is_file(public_path(ltrim($path, '/')))) {
+                    $missing[] = $file->getRelativePathname().' -> '.$path;
+                }
+            }
+        }
+    }
+
+    expect($missing)->toBeEmpty();
+});
+
+test('stored pictures that carry the Vendera logo are replaced by clean ones', function () {
+    $migration = require database_path('migrations/2026_11_20_045305_replace_logo_bearing_vendera_pictures.php');
+
+    $alpine = Machine::factory()->create(['image' => '/images/machines/Alpine-ST5000.png']);
+    $uploaded = Machine::factory()->create(['image' => 'machines/admin-upload.jpg']);
+    $combo = Machine::factory()->create(['image' => '/images/machines/snack-drink-combo.png']);
+    $hero = HeroImage::factory()->create(['image' => '/images/machines/Alpine-ST5000.png']);
+    $healthy = LocationType::factory()->create(['image' => '/images/machines/healthy-vending.png']);
+
+    $migration->up();
+
+    expect($alpine->refresh()->image)->toBe('/images/machines/Alpine-ST50000.jpg')
+        ->and($hero->refresh()->image)->toBe('/images/machines/Alpine-ST50000.jpg')
+        ->and($healthy->refresh()->image)->toBe('/images/machines/healthy-vending1.png')
+        ->and($uploaded->refresh()->image)->toBe('machines/admin-upload.jpg')
+        ->and($combo->refresh()->image)->toBe('/images/machines/snack-drink-combo.png');
 });
 
 test('stored Vendera pictures are replaced and the cooler gets its specifications image', function () {
@@ -74,7 +122,7 @@ test('stored Vendera pictures are replaced and the cooler gets its specification
         ->and($cooler->spec_image)->toBe('/images/machines/1000015236.jpg')
         ->and($uploaded->refresh()->image)->toBe('machines/admin-upload.jpg')
         ->and($combo->refresh()->image)->toBe('/images/machines/snack-drink-combo.png')
-        ->and($alpine->refresh()->image)->toBe('/images/machines/Alpine-ST5000.png')
+        ->and($alpine->refresh()->image)->toBe('/images/machines/Alpine-ST50000.jpg')
         ->and($sandstar->refresh()->image)->toBe('/images/machines/1000015229.jpg')
         ->and($traditional->refresh()->image)->toBe('/images/hero/tradational-vending.png');
 });

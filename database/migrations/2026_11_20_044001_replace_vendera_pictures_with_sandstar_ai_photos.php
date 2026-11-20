@@ -30,7 +30,7 @@ return new class extends Migration
      */
     private const HERO_REPLACEMENTS_BY_ALT = [
         'Snack and drink combo machine' => '/images/machines/snack-drink-combo.png',
-        'Alpine snack and beverage machine' => '/images/machines/Alpine-ST5000.png',
+        'Alpine snack and beverage machine' => '/images/machines/Alpine-ST50000.jpg',
     ];
 
     /**

@@ -55,7 +55,7 @@ class LocationTypeSeeder extends Seeder
                 'slug' => 'office',
                 'description' => 'Quiet machines, healthy options and coffee for daytime teams.',
                 'kind' => 'combo',
-                'image' => '/images/machines/Alpine-ST5000.png',
+                'image' => '/images/machines/Alpine-ST50000.jpg',
             ],
             [
                 'name' => 'Warehouse',
@@ -69,7 +69,7 @@ class LocationTypeSeeder extends Seeder
                 'slug' => 'recreational-facilities',
                 'description' => 'Protein, electrolytes and recovery drinks for members and visitors.',
                 'kind' => 'healthy',
-                'image' => '/images/machines/healthy-vending.png',
+                'image' => '/images/machines/healthy-vending1.png',
             ],
             [
                 'name' => 'Medical Facility',
@@ -83,7 +83,7 @@ class LocationTypeSeeder extends Seeder
                 'slug' => 'school',
                 'description' => 'Machines and products that follow school nutrition rules, with card and phone pay for campuses.',
                 'kind' => 'healthy',
-                'image' => '/images/machines/healthy-vending.png',
+                'image' => '/images/machines/healthy-vending1.png',
             ],
             [
                 'name' => 'Other',
