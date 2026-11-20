@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'phone',
     'owns_machines',
     'machine_types',
-    'machines_needed',
+    'leads_needed',
     'primary_city',
     'additional_service_areas',
     'primary_city_changes',

@@ -50,6 +50,30 @@ test('machine detail page renders with database props', function () {
         );
 });
 
+test('the machine detail page shows the specifications image only when the machine has one', function () {
+    $category = MachineCategory::factory()->create();
+
+    $withSpecs = Machine::factory()->create([
+        'machine_category_id' => $category->id,
+        'slug' => 'ai-cooler',
+        'spec_image' => '/images/machines/1000015236.jpg',
+    ]);
+    $withoutSpecs = Machine::factory()->create([
+        'machine_category_id' => $category->id,
+        'spec_image' => null,
+    ]);
+
+    $this->get(route('machines.show', $withSpecs->slug))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('specsImage', '/images/machines/1000015236.jpg')
+        );
+
+    $this->get(route('machines.show', $withoutSpecs->slug))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('specsImage', null)
+        );
+});
+
 test('unknown machine detail returns 404', function () {
     $this->get(route('machines.show', 'not-a-machine'))
         ->assertNotFound();

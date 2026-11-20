@@ -11,7 +11,6 @@ class HomePageData
     {
         return [
             'site' => self::site(),
-            'hero' => self::hero(),
             'howItWorks' => self::howItWorks(),
             'services' => self::services(),
             'featuredMachines' => self::featuredMachines(),
@@ -109,56 +108,6 @@ class HomePageData
     /**
      * @return array<string, mixed>
      */
-    public static function hero(): array
-    {
-        return [
-            'eyebrow' => 'Vending management · Nationwide',
-            'titleBefore' => 'Vending Machine Location Services, ',
-            'titleAccent' => 'for every location.',
-            'lede' => 'We find the vendor, schedule the install and keep the machines stocked and running. You deal with one contact for every site you have.',
-            'bullets' => [
-                'No equipment fees, install charges or service costs',
-                'Product mix chosen for each location',
-                'One building or a 500-site rollout, in all 50 states',
-            ],
-            'cta' => [
-                'label' => 'Request a free machine',
-                'href' => '#request-sec',
-            ],
-            'trust' => [
-                'stars' => '★★★★★',
-                'text' => 'Used by thousands of businesses across the U.S.',
-                'reviewsLabel' => 'Read reviews',
-                'reviewsHref' => '#reviews-sec',
-            ],
-            'images' => [
-                [
-                    'src' => '/images/hero/Vendera-Black-Glass-Display-Cooler.png',
-                    'alt' => 'Snack and drink combo machine',
-                ],
-                [
-                    'src' => '/images/machines/Vendera-Tap-Grab-Go-Cabinet.png',
-                    'alt' => 'Alpine snack and beverage machine',
-                ],
-                [
-                    'src' => '/images/hero/tradational-vending.png',
-                    'alt' => 'Traditional vending machine',
-                ],
-                [
-                    'src' => '/images/machines/Vendera-Tap-Grab-Go-Cabinet.png',
-                    'alt' => 'Sandstar AI cooler',
-                ],
-                [
-                    'src' => '/images/machines/micro-market.jpg',
-                    'alt' => 'Micro market setup',
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
     public static function howItWorks(): array
     {
         return [
@@ -195,7 +144,7 @@ class HomePageData
                     'title' => 'Vending machines',
                     'text' => 'Snack, drink and combo machines with card and phone pay.',
                     'href' => '/machines',
-                    'image' => '/images/machines/Alpine-ST5000.png',
+                    'image' => '/images/machines/Alpine-ST50000.jpg',
                 ],
                 [
                     'title' => 'Micro markets',
@@ -284,7 +233,7 @@ class HomePageData
                 'tags' => ['Sandstar AI cooler', 'Tap and go'],
                 'desc' => 'Tap a card or phone, open the door and take what you want. Cameras and weight sensors charge only for what you took.',
                 'href' => '/machines/ai-cooler',
-                'image' => '/images/machines/Vendera-Tap-Grab-Go-Cabinet.png',
+                'image' => '/images/machines/1000015229.jpg',
             ],
             [
                 'id' => 'micro-market',

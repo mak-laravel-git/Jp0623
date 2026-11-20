@@ -46,8 +46,9 @@ class MachineController extends Controller
     public function store(StoreMachineRequest $request): RedirectResponse
     {
         $this->machines->create(
-            $request->safe()->except(['image']),
+            $request->safe()->except(['image', 'spec_image']),
             $request->hasFile('image') ? $request->file('image') : null,
+            $request->hasFile('spec_image') ? $request->file('spec_image') : null,
         );
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Machine created successfully.']);
@@ -78,8 +79,9 @@ class MachineController extends Controller
     {
         $this->machines->update(
             $machine,
-            $request->safe()->except(['image']),
+            $request->safe()->except(['image', 'spec_image']),
             $request->hasFile('image') ? $request->file('image') : null,
+            $request->hasFile('spec_image') ? $request->file('spec_image') : null,
         );
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Machine updated successfully.']);

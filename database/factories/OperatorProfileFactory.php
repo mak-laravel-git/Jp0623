@@ -24,7 +24,7 @@ class OperatorProfileFactory extends Factory
             'phone' => null,
             'owns_machines' => true,
             'machine_types' => ['Combo', 'Snack'],
-            'machines_needed' => '1',
+            'leads_needed' => '1',
             'primary_city' => fake()->city().', TX',
             'address' => null,
             'city' => null,

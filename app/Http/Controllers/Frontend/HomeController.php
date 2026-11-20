@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\LocationType;
 use App\Services\ArticleService;
 use App\Services\CityService;
+use App\Services\HeroSectionService;
 use App\Services\HomeFaqService;
 use App\Services\LocationTypeService;
 use App\Services\MachineService;
@@ -25,11 +26,13 @@ class HomeController extends Controller
         private ArticleService $articles,
         private CityService $cities,
         private ReviewService $reviews,
+        private HeroSectionService $heroSection,
     ) {}
 
     public function index(): Response
     {
         $page = HomePageData::all();
+        $page['hero'] = $this->heroSection->forFrontend();
         $page['faqs']['items'] = $this->faqs->listForFrontend();
         $page['reviews']['items'] = $this->reviews->listForFrontend();
         $page['requestForm']['locationTypes'] = $this->locationTypes->listActiveNamesForFrontend();

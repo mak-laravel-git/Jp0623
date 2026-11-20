@@ -171,7 +171,7 @@ test('updating a machine without a new image keeps the existing image', function
         'machine_category_id' => $this->category->id,
         'name' => 'Keep Image Machine',
         'kind' => 'combo',
-        'image' => '/images/machines/Alpine-ST5000.png',
+        'image' => '/images/machines/Alpine-ST50000.jpg',
     ]);
 
     $this->actingAs($this->admin)
@@ -190,7 +190,7 @@ test('updating a machine without a new image keeps the existing image', function
         ])
         ->assertRedirect(route('admin.machines.index'));
 
-    expect($machine->fresh()->image)->toBe('/images/machines/Alpine-ST5000.png');
+    expect($machine->fresh()->image)->toBe('/images/machines/Alpine-ST50000.jpg');
 });
 
 test('updating a machine with a new image stores the upload', function () {
@@ -200,7 +200,7 @@ test('updating a machine with a new image stores the upload', function () {
         'machine_category_id' => $this->category->id,
         'name' => 'Replace Image Machine',
         'kind' => 'combo',
-        'image' => '/images/machines/Alpine-ST5000.png',
+        'image' => '/images/machines/Alpine-ST50000.jpg',
     ]);
 
     $this->actingAs($this->admin)
@@ -221,7 +221,7 @@ test('updating a machine with a new image stores the upload', function () {
 
     $machine->refresh();
 
-    expect($machine->image)->not->toBe('/images/machines/Alpine-ST5000.png')
+    expect($machine->image)->not->toBe('/images/machines/Alpine-ST50000.jpg')
         ->and($machine->image)->toStartWith('machines/')
         ->and($machine->image_url)->toBe('/storage/'.$machine->image);
 
@@ -296,4 +296,116 @@ test('a machine created without sort order appends after existing rows', functio
                 ->where('machines.data.0.name', 'Older Machine')
                 ->where('machines.data.1.name', 'Newest Machine')
         );
+});
+
+/**
+ * @return array<string, mixed>
+ */
+function machineUpdatePayload(Machine $machine, MachineCategory $category, array $overrides = []): array
+{
+    return array_merge([
+        'machine_category_id' => $category->id,
+        'name' => $machine->name,
+        'slug' => $machine->slug,
+        'kind' => 'combo',
+        'status' => 'Available nationwide',
+        'is_featured' => false,
+        'is_active' => true,
+        'sort_order' => 1,
+    ], $overrides);
+}
+
+test('a machine can be created with a specifications image', function () {
+    Storage::fake('public');
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.machines.store'), [
+            'machine_category_id' => $this->category->id,
+            'name' => 'Specs Machine',
+            'kind' => 'combo',
+            'status' => 'Available nationwide',
+            'is_featured' => false,
+            'is_active' => true,
+            'spec_image' => UploadedFile::fake()->image('specs.jpg'),
+        ])
+        ->assertSessionHasNoErrors();
+
+    $machine = Machine::query()->where('name', 'Specs Machine')->sole();
+
+    expect($machine->spec_image)->toStartWith('machines/')
+        ->and($machine->spec_image_url)->toBe('/storage/'.$machine->spec_image)
+        ->and($machine->image)->toBeNull();
+    Storage::disk('public')->assertExists($machine->spec_image);
+});
+
+test('replacing and removing the specifications image deletes the old upload but never a default file', function () {
+    Storage::fake('public');
+
+    $machine = Machine::factory()->create([
+        'machine_category_id' => $this->category->id,
+        'kind' => 'combo',
+        'spec_image' => '/images/machines/1000015236.jpg',
+    ]);
+
+    $this->actingAs($this->admin)
+        ->put(route('admin.machines.update', $machine), machineUpdatePayload($machine, $this->category, [
+            'spec_image' => UploadedFile::fake()->image('first.jpg'),
+        ]))
+        ->assertSessionHasNoErrors();
+
+    $firstUpload = $machine->refresh()->spec_image;
+
+    expect($firstUpload)->toStartWith('machines/');
+    Storage::disk('public')->assertExists($firstUpload);
+    expect(public_path('images/machines/1000015236.jpg'))->toBeFile();
+
+    $this->actingAs($this->admin)
+        ->put(route('admin.machines.update', $machine), machineUpdatePayload($machine, $this->category, [
+            'spec_image' => UploadedFile::fake()->image('second.jpg'),
+        ]))
+        ->assertSessionHasNoErrors();
+
+    $secondUpload = $machine->refresh()->spec_image;
+
+    Storage::disk('public')->assertMissing($firstUpload);
+    Storage::disk('public')->assertExists($secondUpload);
+
+    $this->actingAs($this->admin)
+        ->put(route('admin.machines.update', $machine), machineUpdatePayload($machine, $this->category, [
+            'remove_spec_image' => true,
+        ]))
+        ->assertSessionHasNoErrors();
+
+    expect($machine->refresh()->spec_image)->toBeNull();
+    Storage::disk('public')->assertMissing($secondUpload);
+});
+
+test('the specifications image is kept when it is not changed', function () {
+    $machine = Machine::factory()->create([
+        'machine_category_id' => $this->category->id,
+        'kind' => 'combo',
+        'spec_image' => '/images/machines/1000015236.jpg',
+    ]);
+
+    $this->actingAs($this->admin)
+        ->put(route('admin.machines.update', $machine), machineUpdatePayload($machine, $this->category, [
+            'spec_image' => '',
+        ]))
+        ->assertSessionHasNoErrors();
+
+    expect($machine->refresh()->spec_image)->toBe('/images/machines/1000015236.jpg');
+});
+
+test('the specifications image must be an image', function () {
+    Storage::fake('public');
+
+    $machine = Machine::factory()->create(['machine_category_id' => $this->category->id, 'kind' => 'combo']);
+
+    $this->actingAs($this->admin)
+        ->put(route('admin.machines.update', $machine), machineUpdatePayload($machine, $this->category, [
+            'spec_image' => UploadedFile::fake()->create('specs.pdf', 10, 'application/pdf'),
+        ]))
+        ->assertSessionHasErrors('spec_image');
+
+    expect($machine->refresh()->spec_image)->toBeNull();
 });

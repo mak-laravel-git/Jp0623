@@ -164,9 +164,9 @@ export default function ShowUser({
                                             }
                                         />
                                         <Detail
-                                            label="Machines needed"
+                                            label="Quality leads wanted"
                                             value={
-                                                operatorProfile.machines_needed
+                                                operatorProfile.leads_needed
                                             }
                                             icon={Package}
                                         />

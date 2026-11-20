@@ -62,7 +62,7 @@ class AboutPageData
         return [
             'title' => 'About us',
             'lead' => 'We make vending simple for businesses with one location or hundreds, and we help independent operators grow.',
-            'image' => '/images/machines/Alpine-ST5000.png',
+            'image' => '/images/machines/Alpine-ST50000.jpg',
         ];
     }
 

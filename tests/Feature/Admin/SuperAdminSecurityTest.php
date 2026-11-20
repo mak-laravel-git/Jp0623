@@ -48,7 +48,7 @@ test('client-supplied roles are ignored when creating through user management', 
             'company_name' => 'Sneaky Co',
             'owns_machines' => false,
             'machine_types' => ['Snack'],
-            'machines_needed' => '1',
+            'leads_needed' => '1',
             'primary_city' => 'Dallas, TX',
             'roles' => [RoleEnum::SUPER_ADMIN->value],
         ])

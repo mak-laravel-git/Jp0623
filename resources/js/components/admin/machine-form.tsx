@@ -62,6 +62,7 @@ interface MachineFormProps {
     categories: MachineCategoryOption[];
     isEdit?: boolean;
     currentImageUrl?: string | null;
+    currentSpecImageUrl?: string | null;
     defaults?: MachineFormDefaults;
     defaultSortOrder?: number;
     onCancel?: () => void;
@@ -72,6 +73,7 @@ export function MachineForm({
     categories,
     isEdit = false,
     currentImageUrl = null,
+    currentSpecImageUrl = null,
     defaults,
     defaultSortOrder = 0,
     onCancel,
@@ -92,6 +94,8 @@ export function MachineForm({
         sort_order: defaults?.sort_order ?? defaultSortOrder,
         image: null as File | null,
         remove_image: false as boolean,
+        spec_image: null as File | null,
+        remove_spec_image: false as boolean,
     });
 
     const existingImage =
@@ -109,9 +113,26 @@ export function MachineForm({
               ]
             : [];
 
+    const existingSpecImage =
+        isEdit &&
+        currentSpecImageUrl &&
+        !form.data.spec_image &&
+        !form.data.remove_spec_image
+            ? [
+                  {
+                      id: 'current-spec',
+                      path: currentSpecImageUrl,
+                      url: currentSpecImageUrl,
+                      mime_type: imageMimeFromUrl(currentSpecImageUrl),
+                  },
+              ]
+            : [];
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const hasNewImage = form.data.image instanceof File;
+        const hasNewImage =
+            form.data.image instanceof File ||
+            form.data.spec_image instanceof File;
 
         form.submit({
             // Only force FormData when uploading a file. Always forcing sends an
@@ -134,61 +155,105 @@ export function MachineForm({
             onSubmit={handleSubmit}
             className="space-y-6"
         >
-            <div className="grid gap-2">
-                <Label>Machine image</Label>
-                <FileUpload
-                    accept="image/*"
-                    maxSize={4}
-                    value={form.data.image}
-                    onChange={(file) => {
-                        form.setData('image', (file as File | null) ?? null);
-                        form.setData('remove_image', false);
-                    }}
-                    existingFiles={existingImage}
-                    onRemoveExisting={() => form.setData('remove_image', true)}
-                    placeholder="Drag & drop a machine photo, or click to browse"
-                    hint="PNG, JPG or WEBP up to 4MB"
-                    error={form.errors.image}
-                    classNames={{ wrapper: 'sm:max-w-md' }}
-                />
+            <div className="grid gap-6 lg:grid-cols-2">
+                <div className="grid content-start gap-2">
+                    <Label>Machine image</Label>
+                    <FileUpload
+                        accept="image/*"
+                        maxSize={4}
+                        value={form.data.image}
+                        onChange={(file) => {
+                            form.setData(
+                                'image',
+                                (file as File | null) ?? null,
+                            );
+                            form.setData('remove_image', false);
+                        }}
+                        existingFiles={existingImage}
+                        onRemoveExisting={() =>
+                            form.setData('remove_image', true)
+                        }
+                        placeholder="Drag & drop a machine photo, or click to browse"
+                        hint="PNG, JPG or WEBP up to 4MB"
+                        error={form.errors.image}
+                    />
+                </div>
+
+                <div className="grid content-start gap-2">
+                    <Label>Specifications image</Label>
+                    <FileUpload
+                        accept="image/*"
+                        maxSize={4}
+                        value={form.data.spec_image}
+                        onChange={(file) => {
+                            form.setData(
+                                'spec_image',
+                                (file as File | null) ?? null,
+                            );
+                            form.setData('remove_spec_image', false);
+                        }}
+                        existingFiles={existingSpecImage}
+                        onRemoveExisting={() =>
+                            form.setData('remove_spec_image', true)
+                        }
+                        placeholder="Drag & drop a key features / specifications picture, or click to browse"
+                        hint="Optional. Shown under the machine on its detail page. PNG, JPG or WEBP up to 4MB"
+                        error={form.errors.spec_image}
+                    />
+                </div>
             </div>
 
-            <div className="grid gap-2">
-                <Label htmlFor="machine_category_id">Category</Label>
-                <Select
-                    value={
-                        form.data.machine_category_id
-                            ? String(form.data.machine_category_id)
-                            : undefined
-                    }
-                    onValueChange={(value) =>
-                        form.setData('machine_category_id', Number(value))
-                    }
-                >
-                    <SelectTrigger
-                        id="machine_category_id"
-                        className="w-full sm:max-w-md"
-                        aria-invalid={form.invalid('machine_category_id')}
+            <div className="grid gap-5 sm:grid-cols-2">
+                <div className="grid gap-2">
+                    <Label htmlFor="machine_category_id">Category</Label>
+                    <Select
+                        value={
+                            form.data.machine_category_id
+                                ? String(form.data.machine_category_id)
+                                : undefined
+                        }
+                        onValueChange={(value) =>
+                            form.setData('machine_category_id', Number(value))
+                        }
                     >
-                        <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {categories.map((category) => (
-                            <SelectItem
-                                key={category.id}
-                                value={String(category.id)}
-                            >
-                                {category.name}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                <InputError message={form.errors.machine_category_id} />
-                {categories.length === 0 && (
-                    <p className="text-xs text-destructive">
-                        Create a category before adding a machine.
-                    </p>
-                )}
+                        <SelectTrigger
+                            id="machine_category_id"
+                            className="w-full"
+                            aria-invalid={form.invalid('machine_category_id')}
+                        >
+                            <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {categories.map((category) => (
+                                <SelectItem
+                                    key={category.id}
+                                    value={String(category.id)}
+                                >
+                                    {category.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <InputError message={form.errors.machine_category_id} />
+                    {categories.length === 0 && (
+                        <p className="text-xs text-destructive">
+                            Create a category before adding a machine.
+                        </p>
+                    )}
+                </div>
+
+                <div className="grid gap-2">
+                    <Label htmlFor="kind">Kind</Label>
+                    <Input
+                        id="kind"
+                        value={form.data.kind}
+                        onChange={(e) => form.setData('kind', e.target.value)}
+                        onBlur={() => form.validate('kind')}
+                        aria-invalid={form.invalid('kind')}
+                        placeholder="combo"
+                    />
+                    <InputError message={form.errors.kind} />
+                </div>
             </div>
 
             <NameSlugFields
@@ -205,19 +270,6 @@ export function MachineForm({
                 onNameBlur={() => form.validate('name')}
                 onSlugBlur={() => form.validate('slug')}
             />
-
-            <div className="grid gap-2 sm:max-w-md">
-                <Label htmlFor="kind">Kind</Label>
-                <Input
-                    id="kind"
-                    value={form.data.kind}
-                    onChange={(e) => form.setData('kind', e.target.value)}
-                    onBlur={() => form.validate('kind')}
-                    aria-invalid={form.invalid('kind')}
-                    placeholder="combo"
-                />
-                <InputError message={form.errors.kind} />
-            </div>
 
             <div className="grid gap-2">
                 <Label htmlFor="tags">Tags</Label>

@@ -1,4 +1,4 @@
-export const OPERATOR_MACHINES_NEEDED = [
+export const OPERATOR_LEADS_NEEDED = [
     '1',
     '2',
     '3',
@@ -7,5 +7,5 @@ export const OPERATOR_MACHINES_NEEDED = [
     '6+',
 ] as const;
 
-export type OperatorMachinesNeeded =
-    (typeof OPERATOR_MACHINES_NEEDED)[number];
+export type OperatorLeadsNeeded =
+    (typeof OPERATOR_LEADS_NEEDED)[number];

@@ -49,7 +49,7 @@ export interface AdminOperatorProfile {
     phone: string | null;
     owns_machines: boolean;
     machine_types: string[];
-    machines_needed: string;
+    leads_needed: string;
     primary_city: string;
     address: string | null;
     city: string | null;
@@ -176,6 +176,31 @@ export interface AdminRouteListing {
     updated_at: string;
 }
 
+export interface AdminHeroImage {
+    id: number;
+    hero_section_id: number;
+    image: string;
+    image_url: string | null;
+    alt: string;
+    sort_order: number;
+}
+
+export interface AdminHeroSection {
+    id: number;
+    eyebrow: string;
+    title_before: string;
+    title_accent: string;
+    lede: string;
+    bullets: string[];
+    cta_label: string;
+    cta_href: string;
+    trust_stars: string;
+    trust_text: string;
+    trust_reviews_label: string;
+    trust_reviews_href: string;
+    images: AdminHeroImage[];
+}
+
 export type RouteInquiryStatus = 'pending' | 'contacted' | 'closed';
 
 export interface AdminRouteInquiry {
@@ -268,6 +293,8 @@ export interface AdminMachine {
     description: string | null;
     image: string | null;
     image_url: string | null;
+    spec_image: string | null;
+    spec_image_url: string | null;
     capacity: string | null;
     dimensions: string | null;
     best_for: string | null;

@@ -12,6 +12,7 @@ import {
     MapPin,
     MessageSquare,
     Newspaper,
+    PanelTop,
     Package,
     Receipt,
     Route,
@@ -62,6 +63,7 @@ import adminMachineFaqs from '@/routes/admin/machine-faqs';
 import adminMachines from '@/routes/admin/machines';
 import adminOfficeCoffeeFaqs from '@/routes/admin/office-coffee-faqs';
 import adminProducts from '@/routes/admin/products';
+import adminHeroSection from '@/routes/admin/hero-section';
 import adminRouteInquiries from '@/routes/admin/route-inquiries';
 import adminRouteListings from '@/routes/admin/route-listings';
 import adminUserManagement from '@/routes/admin/user-management';
@@ -321,6 +323,12 @@ export function AppSidebar() {
                 href: adminMembershipSettings.edit(),
                 icon: CreditCard,
                 permissions: [PERMISSIONS.MEMBERSHIP_SETTINGS.EDIT],
+            },
+            {
+                title: 'Hero section',
+                href: adminHeroSection.edit(),
+                icon: PanelTop,
+                permissions: [PERMISSIONS.HERO_SECTION.EDIT],
             },
             {
                 title: 'Reviews',

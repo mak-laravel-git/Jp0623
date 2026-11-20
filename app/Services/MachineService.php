@@ -165,6 +165,7 @@ class MachineService
             'machine' => $this->toFrontendItem($machine),
             'status' => $machine->status,
             'specs' => $this->frontendSpecs($machine),
+            'specsImage' => $machine->spec_image_url,
             'related' => [
                 'title' => 'Other machines you might like.',
                 'items' => $relatedItems,
@@ -237,7 +238,7 @@ class MachineService
     /**
      * @param  array<string, mixed>  $data
      */
-    public function create(array $data, ?UploadedFile $image = null): Machine
+    public function create(array $data, ?UploadedFile $image = null, ?UploadedFile $specImage = null): Machine
     {
         $data['slug'] = $this->uniqueSlug($data['slug'] ?? $data['name']);
         $data['tags'] = $this->normalizeTags($data['tags'] ?? []);
@@ -252,7 +253,11 @@ class MachineService
             $data['image'] = $image->store('machines', 'public');
         }
 
-        unset($data['remove_image']);
+        if ($specImage instanceof UploadedFile) {
+            $data['spec_image'] = $specImage->store('machines', 'public');
+        }
+
+        unset($data['remove_image'], $data['remove_spec_image']);
 
         return Machine::create($data);
     }
@@ -260,7 +265,7 @@ class MachineService
     /**
      * @param  array<string, mixed>  $data
      */
-    public function update(Machine $machine, array $data, ?UploadedFile $image = null): Machine
+    public function update(Machine $machine, array $data, ?UploadedFile $image = null, ?UploadedFile $specImage = null): Machine
     {
         if (array_key_exists('slug', $data) || array_key_exists('name', $data)) {
             $data['slug'] = $this->uniqueSlug(
@@ -282,7 +287,8 @@ class MachineService
         }
 
         $removeImage = (bool) ($data['remove_image'] ?? false);
-        unset($data['remove_image']);
+        $removeSpecImage = (bool) ($data['remove_spec_image'] ?? false);
+        unset($data['remove_image'], $data['remove_spec_image']);
 
         if ($image instanceof UploadedFile) {
             $this->deleteStoredImage($machine);
@@ -290,6 +296,14 @@ class MachineService
         } elseif ($removeImage) {
             $this->deleteStoredImage($machine);
             $data['image'] = null;
+        }
+
+        if ($specImage instanceof UploadedFile) {
+            $this->deleteStoredSpecImage($machine);
+            $data['spec_image'] = $specImage->store('machines', 'public');
+        } elseif ($removeSpecImage) {
+            $this->deleteStoredSpecImage($machine);
+            $data['spec_image'] = null;
         }
 
         $machine->update($data);
@@ -300,6 +314,7 @@ class MachineService
     public function delete(Machine $machine): void
     {
         $this->deleteStoredImage($machine);
+        $this->deleteStoredSpecImage($machine);
         $machine->delete();
     }
 
@@ -346,6 +361,13 @@ class MachineService
     {
         if ($machine->usesStoredUpload() && $machine->image !== null) {
             Storage::disk('public')->delete($machine->image);
+        }
+    }
+
+    private function deleteStoredSpecImage(Machine $machine): void
+    {
+        if ($machine->usesStoredSpecUpload() && $machine->spec_image !== null) {
+            Storage::disk('public')->delete($machine->spec_image);
         }
     }
 }

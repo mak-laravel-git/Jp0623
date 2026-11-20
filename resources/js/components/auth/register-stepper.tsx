@@ -10,6 +10,7 @@ import PasswordInput from '@/components/password-input';
 import { BrandButton } from '@/components/frontend/brand-button';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
+import { SPAM_NOTE } from '@/lib/verification-copy';
 
 function xsrfToken(): string {
     const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
@@ -190,7 +191,7 @@ export function RegisterStepper({
                 phone,
                 owns_machines: ownsMachines === 'Yes',
                 machine_types: machineTypes,
-                machines_needed: quantity,
+                leads_needed: quantity,
                 primary_city: `${selectedLocation.city}, ${selectedLocation.state}`,
                 address: selectedLocation.address,
                 city: selectedLocation.city,
@@ -453,7 +454,7 @@ export function RegisterStepper({
                     <div className="grid gap-5">
                         <fieldset className="grid gap-2.5">
                             <legend className="mb-1 text-sm font-semibold text-brand-ink">
-                                How many machines need locations?
+                                How many quality leads are you looking for?
                             </legend>
                             <div className="flex flex-wrap gap-2">
                                 {QUANTITIES.map((qty) => (
@@ -639,7 +640,7 @@ export function RegisterStepper({
                             <span className="font-semibold text-brand-ink">
                                 {email}
                             </span>
-                            . Enter it below.
+                            . Enter it below. {SPAM_NOTE}
                         </p>
                         {otpMessage ? (
                             <p className="rounded-lg bg-good-bg p-3 text-sm font-semibold text-good">

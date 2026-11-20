@@ -38,7 +38,7 @@ class SchoolsPageData
                 'label' => 'Get Vending Now',
                 'href' => '/#request-sec',
             ],
-            'image' => '/images/machines/healthy-vending.png',
+            'image' => '/images/machines/healthy-vending1.png',
         ];
     }
 

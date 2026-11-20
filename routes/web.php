@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CoffeeMachineController;
 use App\Http\Controllers\Admin\CoffeeServiceRequestController as AdminCoffeeServiceRequestController;
 use App\Http\Controllers\Admin\CoffeeTypeController;
 use App\Http\Controllers\Admin\ContactMessageController as AdminContactMessageController;
+use App\Http\Controllers\Admin\HeroSectionController;
 use App\Http\Controllers\Admin\HomeFaqController;
 use App\Http\Controllers\Admin\LegalPageController;
 use App\Http\Controllers\Admin\LocationTypeController;
@@ -334,6 +335,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->middleware('permission:'.PermissionEnum::MEMBERSHIP_SETTINGS_EDIT->value);
             Route::put('membership-settings', 'update')->name('membership-settings.update')
                 ->middleware(['permission:'.PermissionEnum::MEMBERSHIP_SETTINGS_EDIT->value, HandlePrecognitiveRequests::class]);
+        });
+
+        // Hero section — the text and pictures at the top of the home page.
+        Route::controller(HeroSectionController::class)->group(function () {
+            Route::get('hero-section', 'edit')->name('hero-section.edit')
+                ->middleware('permission:'.PermissionEnum::HERO_SECTION_EDIT->value);
+            Route::put('hero-section', 'update')->name('hero-section.update')
+                ->middleware(['permission:'.PermissionEnum::HERO_SECTION_EDIT->value, HandlePrecognitiveRequests::class]);
         });
 
         Route::controller(SmsTemplateController::class)->group(function () {

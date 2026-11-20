@@ -7,6 +7,7 @@ export default function MachineShow({
     machine,
     status,
     specs,
+    specsImage,
     checks,
     related,
     cta,
@@ -25,6 +26,7 @@ export default function MachineShow({
                 machine={machine}
                 status={status}
                 specs={specs}
+                specsImage={specsImage}
                 checks={checks}
                 cta={cta}
             />

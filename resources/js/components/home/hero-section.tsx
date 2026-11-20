@@ -43,7 +43,7 @@ function HeroImageFrame({
 
                 return (
                     <div
-                        key={image.src}
+                        key={`${index}-${image.src}`}
                         className={cn(
                             'absolute inset-0 flex items-end justify-center',
                             !reduceMotion &&
@@ -90,7 +90,7 @@ export function HeroSection({ hero }: { hero: HeroData }) {
                         {hero.eyebrow}
                     </p>
                     <h1 className="mt-2 font-display text-4xl leading-tight font-extrabold tracking-tight md:text-5xl lg:text-6xl xl:text-7xl">
-                        {hero.titleBefore}
+                        {hero.titleBefore}{' '}
                         <em className="not-italic text-brass">
                             {hero.titleAccent}
                         </em>

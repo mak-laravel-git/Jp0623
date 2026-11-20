@@ -149,6 +149,9 @@ enum PermissionEnum: string
     case LOCATION_TYPES_EDIT = 'location-types.edit';
     case LOCATION_TYPES_DELETE = 'location-types.delete';
 
+    // HERO SECTION (home page hero)
+    case HERO_SECTION_EDIT = 'hero-section.edit';
+
     // ROUTE LISTINGS (established locations & routes for sale)
     case ROUTE_LISTINGS_INDEX = 'route-listings.index';
     case ROUTE_LISTINGS_CREATE = 'route-listings.create';
@@ -304,6 +307,8 @@ enum PermissionEnum: string
             self::LOCATION_TYPES_CREATE,
             self::LOCATION_TYPES_EDIT,
             self::LOCATION_TYPES_DELETE => 'Location Types',
+
+            self::HERO_SECTION_EDIT => 'Hero Section',
 
             self::ROUTE_LISTINGS_INDEX,
             self::ROUTE_LISTINGS_CREATE,

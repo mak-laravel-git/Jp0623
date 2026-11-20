@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
             SmsTemplateSeeder::class,
             MembershipSettingSeeder::class,
             LegalPageSeeder::class,
+            HeroSectionSeeder::class,
         ]);
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }

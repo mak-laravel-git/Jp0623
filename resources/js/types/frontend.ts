@@ -127,6 +127,7 @@ export type MachineDetailPageProps = {
     machine: MachineItem;
     status: string;
     specs: MachineDetailSpecItem[];
+    specsImage?: string | null;
     checks: string[];
     related: MachineDetailRelatedData;
     cta: NavLink;

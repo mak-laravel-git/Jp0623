@@ -11,12 +11,14 @@ export function DetailOverviewSection({
     machine,
     status,
     specs,
+    specsImage,
     checks,
     cta,
 }: {
     machine: MachineItem;
     status: string;
     specs: MachineDetailSpecItem[];
+    specsImage?: string | null;
     checks: string[];
     cta: NavLink;
 }) {
@@ -108,6 +110,20 @@ export function DetailOverviewSection({
                         <BrandButton href={cta.href}>{cta.label}</BrandButton>
                     </div>
                 </div>
+
+                {specsImage ? (
+                    <figure className="mx-auto mt-14 max-w-3xl">
+                        <figcaption className="mb-4 font-display text-2xl font-extrabold tracking-tight">
+                            Key features &amp; specifications
+                        </figcaption>
+                        <img
+                            src={specsImage}
+                            alt={`Key features and specifications of the ${machine.name}`}
+                            loading="lazy"
+                            className="w-full rounded-2xl border border-brand-line"
+                        />
+                    </figure>
+                ) : null}
             </Wrap>
         </section>
     );
