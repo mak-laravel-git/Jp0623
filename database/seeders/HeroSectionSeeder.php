@@ -47,11 +47,11 @@ class HeroSectionSeeder extends Seeder
     {
         return [
             [
-                'image' => '/images/hero/Vendera-Black-Glass-Display-Cooler.png',
+                'image' => '/images/machines/snack-drink-combo.png',
                 'alt' => 'Snack and drink combo machine',
             ],
             [
-                'image' => '/images/machines/Vendera-Tap-Grab-Go-Cabinet.png',
+                'image' => '/images/machines/Alpine-ST5000.png',
                 'alt' => 'Alpine snack and beverage machine',
             ],
             [
@@ -59,7 +59,7 @@ class HeroSectionSeeder extends Seeder
                 'alt' => 'Traditional vending machine',
             ],
             [
-                'image' => '/images/machines/Vendera-Tap-Grab-Go-Cabinet.png',
+                'image' => '/images/machines/1000015229.jpg',
                 'alt' => 'Sandstar AI cooler',
             ],
             [

@@ -18,6 +18,10 @@ class StoreMachineRequest extends FormRequest
         if (! $this->hasFile('image') && $this->input('image') === '') {
             $this->merge(['image' => null]);
         }
+
+        if (! $this->hasFile('spec_image') && $this->input('spec_image') === '') {
+            $this->merge(['spec_image' => null]);
+        }
     }
 
     /**
@@ -33,6 +37,7 @@ class StoreMachineRequest extends FormRequest
             'tags' => ['nullable'],
             'description' => ['nullable', 'string', 'max:5000'],
             'image' => ['nullable', 'image', 'max:4096'],
+            'spec_image' => ['nullable', 'image', 'max:4096'],
             'capacity' => ['nullable', 'string', 'max:255'],
             'dimensions' => ['nullable', 'string', 'max:255'],
             'best_for' => ['nullable', 'string', 'max:255'],
@@ -41,6 +46,7 @@ class StoreMachineRequest extends FormRequest
             'is_active' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'remove_image' => ['nullable', 'boolean'],
+            'remove_spec_image' => ['nullable', 'boolean'],
         ];
     }
 
@@ -57,6 +63,7 @@ class StoreMachineRequest extends FormRequest
             'tags' => 'Tags',
             'description' => 'Description',
             'image' => 'Image',
+            'spec_image' => 'Specifications image',
             'capacity' => 'Capacity',
             'dimensions' => 'Dimensions',
             'best_for' => 'Best for',

@@ -40,7 +40,7 @@ class MachineSeeder extends Seeder
                     'is_featured' => in_array($machine['id'], $featured, true),
                     'is_active' => true,
                     'sort_order' => $index + 1,
-                ],
+                ] + (isset($machine['spec_image']) ? ['spec_image' => $machine['spec_image']] : []),
             );
         }
 
@@ -58,6 +58,7 @@ class MachineSeeder extends Seeder
      *     tags: list<string>,
      *     desc: string,
      *     image: string,
+     *     spec_image?: string,
      *     capacity: string,
      *     dimensions: string,
      *     best_for: string
@@ -121,7 +122,8 @@ class MachineSeeder extends Seeder
                 'type' => 'Sandstar AI cooler',
                 'tags' => ['Sandstar AI cooler', 'Tap and go'],
                 'desc' => 'Tap a card or phone, open the door and take what you want. Cameras and weight sensors charge only for what you took.',
-                'image' => '/images/machines/Vendera-Tap-Grab-Go-Cabinet.png',
+                'image' => '/images/machines/1000015229.jpg',
+                'spec_image' => '/images/machines/1000015236.jpg',
                 'capacity' => 'Up to 250 items',
                 'dimensions' => '80" H × 31" W × 32" D',
                 'best_for' => 'Teams of 25–100 who want fresh food and drinks',

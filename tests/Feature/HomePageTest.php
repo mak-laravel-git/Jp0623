@@ -35,7 +35,7 @@ test('the home page hero comes from the database', function () {
                 ->where('hero.cta.href', '#request-sec')
                 ->where('hero.trust.reviewsHref', '#reviews-sec')
                 ->has('hero.images', 5)
-                ->where('hero.images.0.src', '/images/hero/Vendera-Black-Glass-Display-Cooler.png')
+                ->where('hero.images.0.src', '/images/machines/snack-drink-combo.png')
                 ->where('hero.images.4.alt', 'Micro market setup')
         );
 });

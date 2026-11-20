@@ -37,6 +37,7 @@ export default function EditMachine({
                         categories={categories}
                         isEdit
                         currentImageUrl={machine.image_url}
+                        currentSpecImageUrl={machine.spec_image_url}
                         defaults={{
                             machine_category_id: machine.machine_category_id,
                             name: machine.name,

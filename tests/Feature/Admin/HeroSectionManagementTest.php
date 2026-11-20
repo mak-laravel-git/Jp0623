@@ -93,7 +93,7 @@ test('admin can open the hero section editor', function () {
                 ->where('heroSection.eyebrow', 'Vending management · Nationwide')
                 ->has('heroSection.bullets', 3)
                 ->has('heroSection.images', 5)
-                ->where('heroSection.images.0.image_url', '/images/hero/Vendera-Black-Glass-Display-Cooler.png')
+                ->where('heroSection.images.0.image_url', '/images/machines/snack-drink-combo.png')
         );
 });
 
@@ -172,7 +172,7 @@ test('removing a picture deletes its uploaded file but never the default images'
 
     expect($this->hero->images()->count())->toBe(4);
     Storage::disk('public')->assertMissing($path);
-    expect(public_path('images/hero/Vendera-Black-Glass-Display-Cooler.png'))->toBeFile();
+    expect(public_path('images/machines/snack-drink-combo.png'))->toBeFile();
 });
 
 test('pictures follow the submitted order', function () {

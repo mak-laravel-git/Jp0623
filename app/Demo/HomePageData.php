@@ -233,7 +233,7 @@ class HomePageData
                 'tags' => ['Sandstar AI cooler', 'Tap and go'],
                 'desc' => 'Tap a card or phone, open the door and take what you want. Cameras and weight sensors charge only for what you took.',
                 'href' => '/machines/ai-cooler',
-                'image' => '/images/machines/Vendera-Tap-Grab-Go-Cabinet.png',
+                'image' => '/images/machines/1000015229.jpg',
             ],
             [
                 'id' => 'micro-market',

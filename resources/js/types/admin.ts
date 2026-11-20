@@ -293,6 +293,8 @@ export interface AdminMachine {
     description: string | null;
     image: string | null;
     image_url: string | null;
+    spec_image: string | null;
+    spec_image_url: string | null;
     capacity: string | null;
     dimensions: string | null;
     best_for: string | null;
