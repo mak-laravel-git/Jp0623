@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\HeroSection;
 use App\Models\HomeFaq;
 use App\Models\LocationType;
 use App\Models\Machine;
@@ -8,6 +9,7 @@ use App\Models\Product;
 use App\Models\Review;
 use Database\Seeders\ArticleSeeder;
 use Database\Seeders\CitySeeder;
+use Database\Seeders\HeroSectionSeeder;
 use Database\Seeders\HomeFaqSeeder;
 use Database\Seeders\LocationTypeSeeder;
 use Database\Seeders\MachineCategorySeeder;
@@ -18,6 +20,54 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
+
+test('the home page hero comes from the database', function () {
+    $this->seed(HeroSectionSeeder::class);
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertInertia(
+            fn (Assert $page) => $page
+                ->where('hero.eyebrow', 'Vending management · Nationwide')
+                ->where('hero.titleBefore', 'Vending Machine Location Services,')
+                ->where('hero.titleAccent', 'for every location.')
+                ->has('hero.bullets', 3)
+                ->where('hero.cta.href', '#request-sec')
+                ->where('hero.trust.reviewsHref', '#reviews-sec')
+                ->has('hero.images', 5)
+                ->where('hero.images.0.src', '/images/hero/Vendera-Black-Glass-Display-Cooler.png')
+                ->where('hero.images.4.alt', 'Micro market setup')
+        );
+});
+
+test('edited hero content and an uploaded picture show on the home page', function () {
+    $this->seed(HeroSectionSeeder::class);
+
+    $hero = HeroSection::query()->sole();
+    $hero->update(['title_accent' => 'for every site.']);
+    $hero->images()->delete();
+    $hero->images()->create(['image' => 'hero/new-cooler.jpg', 'alt' => 'Sandstar AI cooler', 'sort_order' => 0]);
+
+    $this->get(route('home'))
+        ->assertInertia(
+            fn (Assert $page) => $page
+                ->where('hero.titleAccent', 'for every site.')
+                ->has('hero.images', 1)
+                ->where('hero.images.0.src', '/storage/hero/new-cooler.jpg')
+                ->where('hero.images.0.alt', 'Sandstar AI cooler')
+        );
+});
+
+test('the home page still renders when the hero has not been seeded', function () {
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertInertia(
+            fn (Assert $page) => $page
+                ->where('hero.eyebrow', '')
+                ->has('hero.bullets', 0)
+                ->has('hero.images', 0)
+        );
+});
 
 test('home page renders the frontend homepage with demo props', function () {
     $this->seed([

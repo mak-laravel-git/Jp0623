@@ -176,6 +176,31 @@ export interface AdminRouteListing {
     updated_at: string;
 }
 
+export interface AdminHeroImage {
+    id: number;
+    hero_section_id: number;
+    image: string;
+    image_url: string | null;
+    alt: string;
+    sort_order: number;
+}
+
+export interface AdminHeroSection {
+    id: number;
+    eyebrow: string;
+    title_before: string;
+    title_accent: string;
+    lede: string;
+    bullets: string[];
+    cta_label: string;
+    cta_href: string;
+    trust_stars: string;
+    trust_text: string;
+    trust_reviews_label: string;
+    trust_reviews_href: string;
+    images: AdminHeroImage[];
+}
+
 export type RouteInquiryStatus = 'pending' | 'contacted' | 'closed';
 
 export interface AdminRouteInquiry {

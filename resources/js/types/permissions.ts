@@ -157,6 +157,9 @@ export const PERMISSIONS = {
         EDIT: 'location-types.edit',
         DELETE: 'location-types.delete',
     },
+    HERO_SECTION: {
+        EDIT: 'hero-section.edit',
+    },
     ROUTE_LISTINGS: {
         INDEX: 'route-listings.index',
         CREATE: 'route-listings.create',

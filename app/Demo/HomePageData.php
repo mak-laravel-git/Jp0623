@@ -11,7 +11,6 @@ class HomePageData
     {
         return [
             'site' => self::site(),
-            'hero' => self::hero(),
             'howItWorks' => self::howItWorks(),
             'services' => self::services(),
             'featuredMachines' => self::featuredMachines(),
@@ -102,56 +101,6 @@ class HomePageData
                 ['label' => 'Privacy policy', 'href' => '/legal/privacy'],
                 ['label' => 'Terms & conditions', 'href' => '/legal/terms'],
                 ['label' => 'Operator terms', 'href' => '/legal/operator-terms'],
-            ],
-        ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public static function hero(): array
-    {
-        return [
-            'eyebrow' => 'Vending management · Nationwide',
-            'titleBefore' => 'Vending Machine Location Services, ',
-            'titleAccent' => 'for every location.',
-            'lede' => 'We find the vendor, schedule the install and keep the machines stocked and running. You deal with one contact for every site you have.',
-            'bullets' => [
-                'No equipment fees, install charges or service costs',
-                'Product mix chosen for each location',
-                'One building or a 500-site rollout, in all 50 states',
-            ],
-            'cta' => [
-                'label' => 'Request a free machine',
-                'href' => '#request-sec',
-            ],
-            'trust' => [
-                'stars' => '★★★★★',
-                'text' => 'Used by thousands of businesses across the U.S.',
-                'reviewsLabel' => 'Read reviews',
-                'reviewsHref' => '#reviews-sec',
-            ],
-            'images' => [
-                [
-                    'src' => '/images/hero/Vendera-Black-Glass-Display-Cooler.png',
-                    'alt' => 'Snack and drink combo machine',
-                ],
-                [
-                    'src' => '/images/machines/Vendera-Tap-Grab-Go-Cabinet.png',
-                    'alt' => 'Alpine snack and beverage machine',
-                ],
-                [
-                    'src' => '/images/hero/tradational-vending.png',
-                    'alt' => 'Traditional vending machine',
-                ],
-                [
-                    'src' => '/images/machines/Vendera-Tap-Grab-Go-Cabinet.png',
-                    'alt' => 'Sandstar AI cooler',
-                ],
-                [
-                    'src' => '/images/machines/micro-market.jpg',
-                    'alt' => 'Micro market setup',
-                ],
             ],
         ];
     }
