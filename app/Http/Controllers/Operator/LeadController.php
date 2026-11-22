@@ -31,6 +31,23 @@ class LeadController extends Controller
         ]);
     }
 
+    /**
+     * Leads other operators bought nearby, with public details only.
+     */
+    public function sold(Request $request): Response
+    {
+        $user = $request->user();
+        $user->loadMissing('operatorProfile');
+        $profile = $user->operatorProfile;
+
+        return Inertia::render('operator/leads/sold', [
+            'soldLeads' => $this->leads->soldNear($user),
+            'primaryCity' => $profile?->primary_city ?: 'Not set',
+            'hasLocation' => $profile?->latitude !== null && $profile?->longitude !== null,
+            'radius' => LeadService::SOLD_RADIUS_MILES,
+        ]);
+    }
+
     public function purchased(Request $request): Response
     {
         $user = $request->user();

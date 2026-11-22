@@ -176,6 +176,22 @@ export interface AdminRouteListing {
     updated_at: string;
 }
 
+export interface AdminMembershipCustomPrice {
+    id: number;
+    email: string;
+    monthly_price: number;
+    member_name: string | null;
+    registered: boolean;
+    membership_status: string | null;
+    created_at: string;
+}
+
+export interface MembershipCustomPriceLookup {
+    exists: boolean;
+    name: string | null;
+    message: string;
+}
+
 export interface AdminHeroImage {
     id: number;
     hero_section_id: number;

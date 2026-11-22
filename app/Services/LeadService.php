@@ -7,6 +7,7 @@ use App\Models\LeadPurchase;
 use App\Models\OperatorProfile;
 use App\Models\User;
 use App\Models\VendingRequest;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
@@ -29,6 +30,16 @@ class LeadService
      * @var list<string>
      */
     public const LISTED_STATUSES = ['new', 'reviewed'];
+
+    /**
+     * "Sold near you" covers leads sold within this many miles of the operator (the same reach as lead SMS alerts).
+     */
+    public const SOLD_RADIUS_MILES = 100;
+
+    /**
+     * How many of the most recent paid purchases are checked against the radius.
+     */
+    private const SOLD_SCAN_LIMIT = 500;
 
     /**
      * Leads the operator has not bought yet, without any contact details.
@@ -99,6 +110,67 @@ class LeadService
             ->map(fn (LeadPurchase $purchase): array => $this->mapPurchased($purchase))
             ->values()
             ->all();
+    }
+
+    /**
+     * Leads that were sold (payment confirmed) within {@see self::SOLD_RADIUS_MILES} of the operator, newest first.
+     *
+     * Only public, non-identifying details are returned: no business name, address, contact details or buyer.
+     * Without a saved location there is nothing to measure from, so the list is empty.
+     *
+     * @return list<array{
+     *     id: string,
+     *     type: string,
+     *     city: string,
+     *     st: string,
+     *     zip: string,
+     *     dist: int,
+     *     people: int|null,
+     *     wants: string,
+     *     price: int,
+     *     sold: string,
+     *     mine: bool
+     * }>
+     */
+    public function soldNear(User $user, int $limit = 50): array
+    {
+        $profile = $user->operatorProfile;
+
+        if ($profile === null || $profile->latitude === null || $profile->longitude === null) {
+            return [];
+        }
+
+        $sold = [];
+
+        $purchases = LeadPurchase::query()
+            ->paid()
+            ->with('leadable')
+            ->latest('purchased_at')
+            ->latest('id')
+            ->limit(self::SOLD_SCAN_LIMIT)
+            ->get();
+
+        foreach ($purchases as $purchase) {
+            $lead = $purchase->leadable;
+
+            if ($lead === null) {
+                continue;
+            }
+
+            $distance = $this->distanceInMiles($profile, $lead);
+
+            if ($distance === null || $distance > self::SOLD_RADIUS_MILES) {
+                continue;
+            }
+
+            $sold[] = $this->mapSold($purchase, $lead, $distance, $user);
+
+            if (count($sold) >= $limit) {
+                break;
+            }
+        }
+
+        return $sold;
     }
 
     /**
@@ -235,15 +307,41 @@ class LeadService
         ];
     }
 
+    /**
+     * @return array{id: string, type: string, city: string, st: string, zip: string, dist: int, people: int|null, wants: string, price: int, sold: string, mine: bool}
+     */
+    private function mapSold(LeadPurchase $purchase, Model $lead, int $distance, User $viewer): array
+    {
+        $isCoffee = $lead instanceof CoffeeServiceRequest;
+        $postalCode = (string) ($lead->postal_code ?: ($isCoffee ? $lead->zip_code : ''));
+
+        return [
+            'id' => $this->publicId($lead),
+            'type' => $isCoffee ? 'Office coffee' : $lead->locationTypeLabel(),
+            'city' => (string) $lead->city,
+            'st' => (string) $lead->state,
+            'zip' => Str::substr($postalCode, 0, 3),
+            'dist' => $distance,
+            'people' => $isCoffee ? null : $lead->employees_on_site,
+            'wants' => $isCoffee ? 'Office coffee' : implode(', ', $lead->machine_interests ?? []),
+            'price' => (int) $purchase->price,
+            'sold' => $this->dateLabel($purchase->purchased_at ?? $purchase->paid_at ?? $purchase->created_at),
+            'mine' => $purchase->user_id === $viewer->id,
+        ];
+    }
+
     private function listedLabel(Model $lead): string
     {
-        $createdAt = $lead->created_at;
+        return $this->dateLabel($lead->created_at);
+    }
 
+    private function dateLabel(?CarbonInterface $date): string
+    {
         return match (true) {
-            $createdAt === null => '',
-            $createdAt->isToday() => 'Today',
-            $createdAt->isYesterday() => 'Yesterday',
-            default => $createdAt->format('M j'),
+            $date === null => '',
+            $date->isToday() => 'Today',
+            $date->isYesterday() => 'Yesterday',
+            default => $date->format('M j'),
         };
     }
 

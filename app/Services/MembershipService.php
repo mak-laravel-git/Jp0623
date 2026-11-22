@@ -16,22 +16,25 @@ class MembershipService
 {
     public function __construct(
         private MembershipSettingsService $settings,
+        private MembershipPricingService $pricing,
         private SquareClient $square,
     ) {}
 
     public function ensureFor(User $user): OperatorMembership
     {
+        $requiresPayment = $this->pricing->requiresPayment($user);
+
         $membership = OperatorMembership::query()->firstOrCreate(
             ['user_id' => $user->id],
             [
-                'status' => $this->settings->isPaid()
+                'status' => $requiresPayment
                     ? OperatorMembership::STATUS_REQUIRED
                     : OperatorMembership::STATUS_ACTIVE_FREE,
-                'monthly_price' => $this->settings->monthlyPrice(),
+                'monthly_price' => $this->pricing->priceFor($user),
             ],
         );
 
-        if ($this->settings->isPaid()) {
+        if ($requiresPayment) {
             $membership->markExpiredPaidPeriodIfNeeded();
         }
 
@@ -42,7 +45,7 @@ class MembershipService
 
     public function userCanAccessMarketplace(User $user): bool
     {
-        if ($this->settings->isFree()) {
+        if (! $this->pricing->requiresPayment($user)) {
             return true;
         }
 
@@ -57,12 +60,14 @@ class MembershipService
         $settings = $this->settings->current();
         $membership = $this->ensureFor($user);
         $allowsAccess = $this->userCanAccessMarketplace($user);
+        $requiresPayment = $this->pricing->requiresPayment($user);
 
         return [
             'settings' => [
                 'mode' => $settings->mode,
-                'monthly_price' => (int) $settings->monthly_price,
-                'is_paid' => $settings->isPaid(),
+                'monthly_price' => $this->pricing->priceFor($user),
+                'is_paid' => $requiresPayment,
+                'type' => $this->pricing->typeFor($user),
             ],
             'membership' => [
                 'status' => $membership->status,
@@ -71,10 +76,10 @@ class MembershipService
                 'card_last4' => $membership->card_last4,
                 'current_period_end' => $membership->current_period_end?->toIso8601String(),
                 'next_billing_at' => $membership->next_billing_at?->toIso8601String(),
-                'needs_payment' => $settings->isPaid() && $membership->needsPayment(),
+                'needs_payment' => $requiresPayment && $membership->needsPayment(),
                 'allows_access' => $allowsAccess,
             ],
-            'square' => $settings->isPaid() ? $this->square->publicConfig() : null,
+            'square' => $requiresPayment ? $this->square->publicConfig() : null,
         ];
     }
 
@@ -88,12 +93,12 @@ class MembershipService
     {
         $this->square->assertConfigured();
 
-        if ($this->settings->isFree()) {
+        if (! $this->pricing->requiresPayment($user)) {
             throw new PaymentFailedException('Membership is currently free.');
         }
 
         $membership = $this->ensureFor($user);
-        $price = $this->settings->monthlyPrice();
+        $price = $this->pricing->priceFor($user);
 
         $customerId = $membership->square_customer_id
             ?: $this->square->createCustomer([

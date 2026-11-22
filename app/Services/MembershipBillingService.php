@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\Payments\SquarePaymentException;
+use App\Models\MembershipCustomPrice;
 use App\Models\MembershipPayment;
 use App\Models\OperatorMembership;
 use App\Services\Payments\SquareClient;
@@ -14,6 +15,7 @@ class MembershipBillingService
 {
     public function __construct(
         private MembershipSettingsService $settings,
+        private MembershipPricingService $pricing,
         private SquareClient $square,
     ) {}
 
@@ -28,7 +30,10 @@ class MembershipBillingService
         $failed = 0;
         $skipped = 0;
 
-        if ($this->settings->isFree()) {
+        // While membership is free for everyone, only members with a custom price are billed.
+        $onlyCustomPrices = $this->settings->isFree();
+
+        if ($onlyCustomPrices && ! MembershipCustomPrice::query()->exists()) {
             return compact('charged', 'failed', 'skipped');
         }
 
@@ -45,7 +50,15 @@ class MembershipBillingService
             ->whereNotNull('square_customer_id')
             ->whereNotNull('square_card_id')
             ->orderBy('id')
+            ->with('user')
             ->get();
+
+        if ($onlyCustomPrices) {
+            $due = $due->filter(
+                fn (OperatorMembership $membership): bool => $membership->user !== null
+                    && $this->pricing->customPriceFor($membership->user) !== null,
+            );
+        }
 
         foreach ($due as $membership) {
             try {
@@ -74,8 +87,10 @@ class MembershipBillingService
     {
         $this->square->assertConfigured();
 
-        $price = $this->settings->monthlyPrice();
         $user = $membership->user;
+        $price = $user !== null
+            ? $this->pricing->priceFor($user)
+            : $this->settings->monthlyPrice();
 
         $payment = MembershipPayment::query()->create([
             'user_id' => $membership->user_id,

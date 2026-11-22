@@ -13,6 +13,7 @@ type SubscriptionPageProps = {
         mode: 'free' | 'paid';
         monthly_price: number;
         is_paid: boolean;
+        type: 'free' | 'paid' | 'custom';
     };
     membership: {
         status: string;
@@ -145,6 +146,9 @@ export default function SubscriptionIndex({
                         {settings.is_paid
                             ? 'A monthly membership is required to buy leads in the marketplace.'
                             : 'Your free membership unlocks the lead marketplace and alerts.'}
+                        {settings.type === 'custom'
+                            ? ' This is the custom price set for your account.'
+                            : ''}
                     </p>
                 </div>
 
