@@ -20,6 +20,8 @@ class OperatorMembershipFactory extends Factory
             'user_id' => User::factory(),
             'status' => OperatorMembership::STATUS_ACTIVE_FREE,
             'monthly_price' => (int) config('membership.default_monthly_price', 29),
+            'pays_default_price' => false,
+            'auto_renew' => true,
             'square_customer_id' => null,
             'square_card_id' => null,
             'card_brand' => null,

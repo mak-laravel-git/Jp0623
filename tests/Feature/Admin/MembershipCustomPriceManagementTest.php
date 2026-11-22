@@ -6,6 +6,7 @@ use App\Models\MembershipCustomPrice;
 use App\Models\MembershipSetting;
 use App\Models\OperatorMembership;
 use App\Models\User;
+use App\Services\MembershipPricingService;
 use App\Services\MembershipSettingsService;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
@@ -174,8 +175,9 @@ test('a paying member keeps the current paid period and gets the new price', fun
     $membership->refresh();
 
     expect($membership->status)->toBe(OperatorMembership::STATUS_ACTIVE)
-        ->and($membership->monthly_price)->toBe(19)
-        ->and($membership->current_period_end->equalTo($periodEnd))->toBeTrue();
+        ->and($membership->monthly_price)->toBe(29)
+        ->and($membership->current_period_end->equalTo($periodEnd))->toBeTrue()
+        ->and(app(MembershipPricingService::class)->priceFor($member))->toBe(19);
 
     Mail::assertNothingQueued();
 });
@@ -230,10 +232,11 @@ test('an email failure does not undo the saved price', function () {
         ->and($row->notified_at)->toBeNull();
 });
 
-test('removing a custom price puts the member back on the default membership', function () {
-    setAdminTestMembershipMode(MembershipSetting::MODE_FREE);
+test('removing a custom price moves the member to the default price even while membership is free', function () {
+    setAdminTestMembershipMode(MembershipSetting::MODE_FREE, 29);
 
     $member = makeOperator();
+    $other = makeOperator();
     $membership = OperatorMembership::factory()->required()->create(['user_id' => $member->id, 'monthly_price' => 15]);
     $row = MembershipCustomPrice::factory()->forUser($member)->create(['monthly_price' => 15]);
 
@@ -242,10 +245,120 @@ test('removing a custom price puts the member back on the default membership', f
         ->assertRedirect();
 
     $membership->refresh();
+    $pricing = app(MembershipPricingService::class);
 
     expect(MembershipCustomPrice::query()->count())->toBe(0)
-        ->and($membership->status)->toBe(OperatorMembership::STATUS_ACTIVE_FREE)
-        ->and($membership->monthly_price)->toBe(29);
+        ->and($membership->status)->toBe(OperatorMembership::STATUS_REQUIRED)
+        ->and($membership->pays_default_price)->toBeTrue()
+        ->and($membership->monthly_price)->toBe(29)
+        ->and($pricing->requiresPayment($member))->toBeTrue()
+        ->and($pricing->typeFor($member))->toBe('paid')
+        ->and($pricing->requiresPayment($other))->toBeFalse();
+
+    // The default price is whatever the admin sets, so the member follows it.
+    setAdminTestMembershipMode(MembershipSetting::MODE_FREE, 40);
+
+    expect($pricing->priceFor($member))->toBe(40);
+});
+
+test('removing the custom price of a free member makes them pay the default price', function () {
+    setAdminTestMembershipMode(MembershipSetting::MODE_FREE, 25);
+
+    $member = makeOperator();
+    $membership = OperatorMembership::factory()->create(['user_id' => $member->id, 'status' => OperatorMembership::STATUS_ACTIVE_FREE]);
+    $row = MembershipCustomPrice::factory()->forUser($member)->create(['monthly_price' => 10]);
+
+    $this->actingAs($this->admin)
+        ->delete(route('admin.membership-settings.custom-prices.destroy', $row))
+        ->assertRedirect();
+
+    expect($membership->refresh()->status)->toBe(OperatorMembership::STATUS_REQUIRED)
+        ->and($membership->monthly_price)->toBe(25);
+});
+
+test('removing a custom price from a paying member keeps the paid period', function () {
+    setAdminTestMembershipMode(MembershipSetting::MODE_PAID, 29);
+
+    $member = makeOperator();
+    $membership = OperatorMembership::factory()->active()->create(['user_id' => $member->id, 'monthly_price' => 12]);
+    $periodEnd = $membership->current_period_end;
+    $row = MembershipCustomPrice::factory()->forUser($member)->create(['monthly_price' => 12]);
+
+    $this->actingAs($this->admin)
+        ->delete(route('admin.membership-settings.custom-prices.destroy', $row))
+        ->assertRedirect();
+
+    $membership->refresh();
+
+    expect($membership->status)->toBe(OperatorMembership::STATUS_ACTIVE)
+        ->and($membership->monthly_price)->toBe(12)
+        ->and($membership->current_period_end->equalTo($periodEnd))->toBeTrue()
+        ->and(app(MembershipPricingService::class)->priceFor($member))->toBe(29);
+});
+
+test('setting a custom price again clears the default price flag', function () {
+    setAdminTestMembershipMode(MembershipSetting::MODE_FREE, 29);
+
+    $member = makeOperator();
+    $membership = OperatorMembership::factory()->required()->create(['user_id' => $member->id, 'pays_default_price' => true]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.membership-settings.custom-prices.store'), ['email' => $member->email, 'monthly_price' => 18])
+        ->assertSessionHasNoErrors();
+
+    expect($membership->refresh()->pays_default_price)->toBeFalse()
+        ->and($membership->monthly_price)->toBe(18);
+});
+
+test('the price of an entry can be edited', function () {
+    Mail::fake();
+    $row = MembershipCustomPrice::factory()->create(['email' => 'edit@example.com', 'monthly_price' => 10]);
+
+    $this->actingAs($this->admin)
+        ->put(route('admin.membership-settings.custom-prices.update', $row), [
+            'monthly_price' => 22,
+            'send_email' => true,
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect();
+
+    expect($row->refresh()->monthly_price)->toBe(22)
+        ->and(MembershipCustomPrice::query()->count())->toBe(1);
+
+    Mail::assertQueued(MembershipCustomPriceMail::class, fn (MembershipCustomPriceMail $mail) => $mail->price === 22);
+
+    $this->actingAs($this->admin)
+        ->put(route('admin.membership-settings.custom-prices.update', $row), ['monthly_price' => 0])
+        ->assertSessionHasErrors('monthly_price');
+
+    $this->actingAs(makeOperator())
+        ->put(route('admin.membership-settings.custom-prices.update', $row), ['monthly_price' => 30])
+        ->assertForbidden();
+
+    expect($row->refresh()->monthly_price)->toBe(22);
+});
+
+test('the list shows when each price was created and last updated', function () {
+    MembershipCustomPrice::factory()->create();
+
+    $this->actingAs($this->admin)
+        ->get(route('admin.membership-settings.edit'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('customPrices.data.0.created_at')
+            ->has('customPrices.data.0.updated_at')
+        );
+});
+
+test('linking a reserved price to a new account does not change its updated time', function () {
+    $row = MembershipCustomPrice::factory()->create(['email' => 'link@example.com']);
+    $row->forceFill(['updated_at' => now()->subDays(3)])->saveQuietly();
+    $updatedAt = $row->refresh()->updated_at;
+
+    $user = User::factory()->create(['email' => 'link@example.com']);
+    app(MembershipPricingService::class)->customRowFor($user);
+
+    expect($row->refresh()->user_id)->toBe($user->id)
+        ->and($row->updated_at->equalTo($updatedAt))->toBeTrue();
 });
 
 test('removing a price reserved for an email without an account just deletes it', function () {

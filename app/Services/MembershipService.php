@@ -72,15 +72,45 @@ class MembershipService
             'membership' => [
                 'status' => $membership->status,
                 'monthly_price' => $membership->monthly_price,
+                'current_price' => $membership->hasValidPaidPeriod()
+                    ? (int) ($membership->monthly_price ?: $this->pricing->priceFor($user))
+                    : null,
                 'card_brand' => $membership->card_brand,
                 'card_last4' => $membership->card_last4,
                 'current_period_end' => $membership->current_period_end?->toIso8601String(),
                 'next_billing_at' => $membership->next_billing_at?->toIso8601String(),
                 'needs_payment' => $requiresPayment && $membership->needsPayment(),
                 'allows_access' => $allowsAccess,
+                'auto_renew' => $membership->auto_renew,
+                'can_change_auto_renew' => $membership->canChangeAutoRenew(),
+                'next_payment' => $membership->hasValidPaidPeriod() && $membership->auto_renew
+                    ? [
+                        'amount' => $this->pricing->priceFor($user),
+                        'date' => ($membership->next_billing_at ?? $membership->current_period_end)?->toIso8601String(),
+                    ]
+                    : null,
             ],
             'square' => $requiresPayment ? $this->square->publicConfig() : null,
         ];
+    }
+
+    /**
+     * Switch automatic renewal on or off. It only works while a paid period is running; the member keeps
+     * access until that period ends and is not charged again when auto-renew is off.
+     */
+    public function setAutoRenew(User $user, bool $autoRenew): bool
+    {
+        return DB::transaction(function () use ($user, $autoRenew): bool {
+            $membership = OperatorMembership::query()->where('user_id', $user->id)->lockForUpdate()->first();
+
+            if ($membership === null || ! $membership->canChangeAutoRenew()) {
+                return false;
+            }
+
+            $membership->forceFill(['auto_renew' => $autoRenew])->save();
+
+            return true;
+        });
     }
 
     /**
@@ -247,6 +277,7 @@ class MembershipService
                 'current_period_end' => $periodEnd,
                 'next_billing_at' => $periodEnd,
                 'canceled_at' => null,
+                'auto_renew' => true,
             ])->save();
 
             return $lockedPayment->refresh();

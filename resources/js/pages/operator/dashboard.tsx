@@ -55,16 +55,28 @@ export default function OperatorDashboard({
                     <div className="flex flex-col gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <p className="font-medium text-amber-950 dark:text-amber-100">
-                                Membership required
+                                {subscription.status === 'canceled'
+                                    ? 'Membership ended'
+                                    : subscription.status === 'past_due'
+                                      ? 'Membership payment failed'
+                                      : 'Membership required'}
                             </p>
                             <p className="mt-1 text-sm text-amber-900/80 dark:text-amber-100/80">
+                                {subscription.status === 'canceled'
+                                    ? 'Your membership has ended and you were not charged again. '
+                                    : subscription.status === 'past_due'
+                                      ? 'We could not charge your card for the renewal. '
+                                      : ''}
                                 Pay ${subscription.monthly_price}/month to buy
                                 leads in the marketplace.
                             </p>
                         </div>
                         <Button asChild>
                             <Link href={subscriptionIndex()}>
-                                Activate membership
+                                {subscription.status === 'canceled' ||
+                                subscription.status === 'past_due'
+                                    ? 'Reactivate membership'
+                                    : 'Activate membership'}
                             </Link>
                         </Button>
                     </div>

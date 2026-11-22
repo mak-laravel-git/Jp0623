@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\MachineCategoryController;
 use App\Http\Controllers\Admin\MachineController;
 use App\Http\Controllers\Admin\MachineFaqController;
 use App\Http\Controllers\Admin\MembershipCustomPriceController;
+use App\Http\Controllers\Admin\MembershipPriceHistoryController;
 use App\Http\Controllers\Admin\MembershipSettingController;
 use App\Http\Controllers\Admin\OfficeCoffeeFaqController;
 use App\Http\Controllers\Admin\OperatorSmsController;
@@ -55,6 +56,7 @@ use App\Http\Controllers\Frontend\VendingRequestController;
 use App\Http\Controllers\Operator\AccountController;
 use App\Http\Controllers\Operator\BillingController;
 use App\Http\Controllers\Operator\LeadController;
+use App\Http\Controllers\Operator\MembershipAutoRenewController;
 use App\Http\Controllers\Operator\MembershipCheckoutController;
 use App\Http\Controllers\Operator\RouteController;
 use App\Http\Controllers\Operator\RouteInquiryController;
@@ -143,6 +145,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('subscription/checkout', [MembershipCheckoutController::class, 'store'])
         ->middleware('throttle:10,1')
         ->name('subscription.checkout');
+    Route::put('subscription/auto-renew', [MembershipAutoRenewController::class, 'update'])
+        ->middleware('throttle:20,1')
+        ->name('subscription.auto-renew');
     Route::get('billing', [BillingController::class, 'index'])->name('billing.index');
 
     // ── Demo landing page ─────────────────────────────────────────────────────
@@ -348,9 +353,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->middleware('permission:'.PermissionEnum::MEMBERSHIP_SETTINGS_EDIT->value);
             Route::post('membership-settings/custom-prices', 'store')->name('membership-settings.custom-prices.store')
                 ->middleware('permission:'.PermissionEnum::MEMBERSHIP_SETTINGS_EDIT->value);
+            Route::put('membership-settings/custom-prices/{custom_price}', 'update')->name('membership-settings.custom-prices.update')
+                ->middleware('permission:'.PermissionEnum::MEMBERSHIP_SETTINGS_EDIT->value);
             Route::delete('membership-settings/custom-prices/{custom_price}', 'destroy')->name('membership-settings.custom-prices.destroy')
                 ->middleware('permission:'.PermissionEnum::MEMBERSHIP_SETTINGS_EDIT->value);
         });
+
+        // Read-only log of custom membership price changes.
+        Route::get('membership-price-history', [MembershipPriceHistoryController::class, 'index'])
+            ->name('membership-price-history.index')
+            ->middleware('permission:'.PermissionEnum::MEMBERSHIP_SETTINGS_EDIT->value);
 
         // Hero section — the text and pictures at the top of the home page.
         Route::controller(HeroSectionController::class)->group(function () {

@@ -81,6 +81,9 @@ export interface OperatorDashboardProps {
         needs_payment: boolean;
         is_paid_mode: boolean;
         monthly_price: number;
+        auto_renew: boolean;
+        next_payment: { amount: number; date: string } | null;
+        ends_on: string | null;
     };
     kpis: OperatorKpi[];
     leads: OperatorLead[];

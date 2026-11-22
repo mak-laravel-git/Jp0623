@@ -36,6 +36,24 @@ class OperatorDashboardData
             default => 'Free',
         };
 
+        $renewalDate = ($membership->next_billing_at ?? $membership->current_period_end)?->format('M j');
+        $hasPaidPeriod = $membership->hasValidPaidPeriod();
+        $paidPrice = $hasPaidPeriod ? (int) $membership->monthly_price : null;
+        $nextPayment = $hasPaidPeriod && $membership->auto_renew && $renewalDate !== null
+            ? ['amount' => $monthlyPrice, 'date' => $renewalDate]
+            : null;
+        $endsOn = $hasPaidPeriod && ! $membership->auto_renew
+            ? $membership->current_period_end?->format('M j')
+            : null;
+
+        $membershipHint = match (true) {
+            $requiresPayment && $membership->needsPayment() => 'Subscribe to buy leads',
+            $nextPayment !== null && $paidPrice !== null && $paidPrice !== $nextPayment['amount'] => "Next payment \${$nextPayment['amount']} on {$nextPayment['date']} (new price)",
+            $nextPayment !== null => "Next payment \${$nextPayment['amount']} on {$nextPayment['date']}",
+            $endsOn !== null => "Ends {$endsOn}, no more charges",
+            default => null,
+        };
+
         $activity = array_map(
             fn (array $lead): array => [
                 'text' => "New lead listed: {$lead['type']}".($lead['city'] !== '' ? " in {$lead['city']}" : ''),
@@ -53,6 +71,9 @@ class OperatorDashboardData
                 'needs_payment' => $requiresPayment && $membership->needsPayment(),
                 'is_paid_mode' => $requiresPayment,
                 'monthly_price' => $monthlyPrice,
+                'auto_renew' => $membership->auto_renew,
+                'next_payment' => $nextPayment,
+                'ends_on' => $endsOn,
             ],
             'kpis' => [
                 [
@@ -68,9 +89,7 @@ class OperatorDashboardData
                 [
                     'label' => 'Membership',
                     'value' => $membershipLabel,
-                    'hint' => $requiresPayment && $membership->needsPayment()
-                        ? 'Subscribe to buy leads'
-                        : null,
+                    'hint' => $membershipHint,
                 ],
             ],
             'leads' => $leads,

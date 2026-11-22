@@ -184,6 +184,20 @@ export interface AdminMembershipCustomPrice {
     registered: boolean;
     membership_status: string | null;
     created_at: string;
+    updated_at: string;
+}
+
+export interface AdminMembershipPriceHistory {
+    id: number;
+    email: string;
+    member_name: string | null;
+    registered: boolean;
+    action: 'created' | 'updated' | 'removed';
+    old_price: number | null;
+    new_price: number | null;
+    changed_by: string | null;
+    email_sent: boolean;
+    created_at: string;
 }
 
 export interface MembershipCustomPriceLookup {

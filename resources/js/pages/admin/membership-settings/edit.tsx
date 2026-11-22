@@ -1,5 +1,12 @@
-import { Head, router, useForm } from '@inertiajs/react';
-import { CreditCard, Save, Trash2, UserPlus } from 'lucide-react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import {
+    CreditCard,
+    History,
+    Pencil,
+    Save,
+    Trash2,
+    UserPlus,
+} from 'lucide-react';
 import { useState } from 'react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { ConfirmDeleteDialog } from '@/components/admin/confirm-delete-dialog';
@@ -26,6 +33,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { dashboard } from '@/routes';
+import membershipPriceHistory from '@/routes/admin/membership-price-history';
 import membershipSettings from '@/routes/admin/membership-settings';
 import { destroy as destroyCustomPrice } from '@/routes/admin/membership-settings/custom-prices';
 import type { AdminMembershipCustomPrice, Paginated } from '@/types/admin';
@@ -59,6 +67,8 @@ export default function EditMembershipSettings({
     counts,
 }: MembershipSettingsEditProps) {
     const [customPriceOpen, setCustomPriceOpen] = useState(false);
+    const [editingPrice, setEditingPrice] =
+        useState<AdminMembershipCustomPrice | null>(null);
     const form = useForm(membershipSettings.update(), {
         mode: settings.mode,
         monthly_price: settings.monthly_price,
@@ -80,10 +90,18 @@ export default function EditMembershipSettings({
                     description="Control whether operator membership is free or billed monthly, and set a custom price for individual members."
                     icon={CreditCard}
                 >
+                    <Button variant="outline" asChild>
+                        <Link href={membershipPriceHistory.index()}>
+                            <History className="h-4 w-4" /> Price history
+                        </Link>
+                    </Button>
                     <Button
                         type="button"
                         variant="outline"
-                        onClick={() => setCustomPriceOpen(true)}
+                        onClick={() => {
+                            setEditingPrice(null);
+                            setCustomPriceOpen(true);
+                        }}
                     >
                         <UserPlus className="h-4 w-4" /> Custom member pricing
                     </Button>
@@ -156,7 +174,9 @@ export default function EditMembershipSettings({
                         </h2>
                         <p className="mt-1 text-sm text-muted-foreground">
                             These members pay their own monthly price instead of
-                            the default price, in any membership mode.
+                            the default price, in any membership mode. If a
+                            price is removed, the member pays the current
+                            default price.
                         </p>
                     </div>
                     <div className="overflow-x-auto">
@@ -169,6 +189,8 @@ export default function EditMembershipSettings({
                                         Price
                                     </TableHead>
                                     <TableHead>Membership</TableHead>
+                                    <TableHead>Created</TableHead>
+                                    <TableHead>Updated</TableHead>
                                     <TableHead className="text-right">
                                         Actions
                                     </TableHead>
@@ -204,7 +226,26 @@ export default function EditMembershipSettings({
                                                     : 'Reserved'}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell className="text-right">
+                                        <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
+                                            {formatDateTime(row.created_at)}
+                                        </TableCell>
+                                        <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
+                                            {formatDateTime(row.updated_at)}
+                                        </TableCell>
+                                        <TableCell className="text-right whitespace-nowrap">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="text-muted-foreground hover:text-foreground"
+                                                aria-label="Edit custom price"
+                                                title="Edit"
+                                                onClick={() => {
+                                                    setEditingPrice(row);
+                                                    setCustomPriceOpen(true);
+                                                }}
+                                            >
+                                                <Pencil className="h-4 w-4" />
+                                            </Button>
                                             <ConfirmDeleteDialog
                                                 description={
                                                     <>
@@ -213,9 +254,9 @@ export default function EditMembershipSettings({
                                                         <strong>
                                                             {row.email}
                                                         </strong>
-                                                        ? They will use the
-                                                        default membership
-                                                        again.
+                                                        ? They will pay the
+                                                        current default price
+                                                        from now on.
                                                     </>
                                                 }
                                                 onConfirm={() =>
@@ -245,7 +286,7 @@ export default function EditMembershipSettings({
                                 {customPrices.data.length === 0 ? (
                                     <TableRow>
                                         <TableCell
-                                            colSpan={5}
+                                            colSpan={7}
                                             className="py-10 text-center text-muted-foreground"
                                         >
                                             No custom prices yet. Use “Custom
@@ -261,11 +302,20 @@ export default function EditMembershipSettings({
             </div>
 
             <MembershipCustomPriceDialog
+                key={editingPrice ? `${editingPrice.id}-${editingPrice.updated_at}` : 'new'}
                 open={customPriceOpen}
                 onOpenChange={setCustomPriceOpen}
+                editing={editingPrice}
             />
         </>
     );
+}
+
+function formatDateTime(value: string): string {
+    return new Date(value).toLocaleString(undefined, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    });
 }
 
 function Stat({ label, value }: { label: string; value: number }) {

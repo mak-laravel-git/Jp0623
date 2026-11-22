@@ -28,6 +28,7 @@ import {
     UserCog,
     Inbox,
     Mail,
+    History,
 } from 'lucide-react';
 import { useMemo } from 'react';
 import AppLogo from '@/components/app-logo';
@@ -71,6 +72,7 @@ import adminUserManagement from '@/routes/admin/user-management';
 import adminCoffeeServiceRequests from '@/routes/admin/coffee-service-requests';
 import adminContactMessages from '@/routes/admin/contact-messages';
 import adminOperatorSms from '@/routes/admin/operator-sms';
+import adminMembershipPriceHistory from '@/routes/admin/membership-price-history';
 import adminMembershipSettings from '@/routes/admin/membership-settings';
 import adminLegalPages from '@/routes/admin/legal-pages';
 import adminPayments from '@/routes/admin/payments';
@@ -330,6 +332,12 @@ export function AppSidebar() {
                 title: 'Membership settings',
                 href: adminMembershipSettings.edit(),
                 icon: CreditCard,
+                permissions: [PERMISSIONS.MEMBERSHIP_SETTINGS.EDIT],
+            },
+            {
+                title: 'Price history',
+                href: adminMembershipPriceHistory.index(),
+                icon: History,
                 permissions: [PERMISSIONS.MEMBERSHIP_SETTINGS.EDIT],
             },
             {

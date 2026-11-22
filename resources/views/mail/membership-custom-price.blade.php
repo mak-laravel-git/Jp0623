@@ -4,7 +4,11 @@
 
 Hello {{ $name ?: 'there' }},
 
+@if ($appliesFrom)
+We have set a custom membership price for your account: **${{ $price }} per month**. Your current paid period is not affected. The new price applies from your next renewal on **{{ $appliesFrom }}**.
+@else
 We have set a custom membership price for your account: **${{ $price }} per month**. This replaces the standard membership price.
+@endif
 
 <x-mail::button :url="$url">
 View your membership
