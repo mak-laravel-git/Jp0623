@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\LocationTypeController;
 use App\Http\Controllers\Admin\MachineCategoryController;
 use App\Http\Controllers\Admin\MachineController;
 use App\Http\Controllers\Admin\MachineFaqController;
+use App\Http\Controllers\Admin\MembershipCustomPriceController;
 use App\Http\Controllers\Admin\MembershipSettingController;
 use App\Http\Controllers\Admin\OfficeCoffeeFaqController;
 use App\Http\Controllers\Admin\OperatorSmsController;
@@ -339,6 +340,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->middleware('permission:'.PermissionEnum::MEMBERSHIP_SETTINGS_EDIT->value);
             Route::put('membership-settings', 'update')->name('membership-settings.update')
                 ->middleware(['permission:'.PermissionEnum::MEMBERSHIP_SETTINGS_EDIT->value, HandlePrecognitiveRequests::class]);
+        });
+
+        // Custom (individual) membership prices, managed from the Membership settings page.
+        Route::controller(MembershipCustomPriceController::class)->group(function () {
+            Route::get('membership-settings/custom-prices/lookup', 'lookup')->name('membership-settings.custom-prices.lookup')
+                ->middleware('permission:'.PermissionEnum::MEMBERSHIP_SETTINGS_EDIT->value);
+            Route::post('membership-settings/custom-prices', 'store')->name('membership-settings.custom-prices.store')
+                ->middleware('permission:'.PermissionEnum::MEMBERSHIP_SETTINGS_EDIT->value);
+            Route::delete('membership-settings/custom-prices/{custom_price}', 'destroy')->name('membership-settings.custom-prices.destroy')
+                ->middleware('permission:'.PermissionEnum::MEMBERSHIP_SETTINGS_EDIT->value);
         });
 
         // Hero section — the text and pictures at the top of the home page.
