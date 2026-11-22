@@ -27,6 +27,11 @@ class StoreContactMessageRequest extends FormRequest
                 FILTER_VALIDATE_BOOLEAN,
                 FILTER_NULL_ON_FAILURE,
             ) ?? false,
+            'sms_consent' => filter_var(
+                $this->input('sms_consent'),
+                FILTER_VALIDATE_BOOLEAN,
+                FILTER_NULL_ON_FAILURE,
+            ) ?? false,
         ]);
     }
 
@@ -40,6 +45,7 @@ class StoreContactMessageRequest extends FormRequest
             'company' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
             'phone' => [
+                Rule::requiredIf(fn (): bool => $this->boolean('sms_consent')),
                 'nullable',
                 'string',
                 'max:50',
@@ -60,6 +66,7 @@ class StoreContactMessageRequest extends FormRequest
             'topic' => ['required', 'string', Rule::in(ContactMessage::TOPICS)],
             'message' => ['required', 'string', 'max:5000'],
             'terms_accepted' => ['accepted'],
+            'sms_consent' => ['boolean'],
         ];
     }
 
@@ -76,6 +83,7 @@ class StoreContactMessageRequest extends FormRequest
             'topic' => 'topic',
             'message' => 'message',
             'terms_accepted' => 'terms',
+            'sms_consent' => 'SMS consent',
         ];
     }
 }

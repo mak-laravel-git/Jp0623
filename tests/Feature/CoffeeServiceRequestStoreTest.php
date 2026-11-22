@@ -50,6 +50,22 @@ test('a guest can submit a coffee service request', function () {
         ->and($request->terms_accepted)->toBeTrue();
 });
 
+test('sms consent is optional and defaults to false on a coffee service request', function () {
+    $this->from('/office-coffee')
+        ->post(route('coffee-service-requests.store'), validCoffeeServiceRequestPayload())
+        ->assertSessionHasNoErrors();
+
+    expect(CoffeeServiceRequest::query()->sole()->sms_consent)->toBeFalse();
+});
+
+test('a coffee service request stores sms consent when it is given', function () {
+    $this->from('/office-coffee')
+        ->post(route('coffee-service-requests.store'), validCoffeeServiceRequestPayload(['sms_consent' => true]))
+        ->assertSessionHasNoErrors();
+
+    expect(CoffeeServiceRequest::query()->sole()->sms_consent)->toBeTrue();
+});
+
 test('coffee service request validation requires core fields and location', function () {
     $this->from('/office-coffee')
         ->post(route('coffee-service-requests.store'), [

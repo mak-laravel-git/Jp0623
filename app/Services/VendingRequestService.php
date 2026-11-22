@@ -68,6 +68,7 @@ class VendingRequestService
     public function create(array $data): VendingRequest
     {
         $data['terms_accepted'] = (bool) ($data['terms_accepted'] ?? false);
+        $data['sms_consent'] = (bool) ($data['sms_consent'] ?? false);
         $data['status'] = VendingRequest::STATUS_NEW;
         $data['operator_sms_status'] = OperatorSmsStatus::PENDING->value;
         $data['operator_sms_sent_count'] = 0;

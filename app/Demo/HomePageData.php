@@ -32,8 +32,8 @@ class HomePageData
         return [
             'name' => 'Vending Machine Location Services',
             'tagline' => 'Nationwide',
-            'footerBlurb' => 'Full-service vending, micro markets and office coffee for businesses nationwide. One contact for every location.',
-            'copyright' => '© 2026 vendingmachinelocationsforsale.com',
+            'footerBlurb' => 'Vending Machine Location Services, operated by JPII Holdings, provides full-service vending, micro markets and office coffee for businesses nationwide. One contact for every location.',
+            'copyright' => '© 2026 JPII Holdings, doing business as Vending Machine Location Services. All rights reserved.',
             'topNav' => [
                 ['label' => 'About', 'href' => '/about'],
                 ['label' => 'Industries', 'href' => '/industries'],

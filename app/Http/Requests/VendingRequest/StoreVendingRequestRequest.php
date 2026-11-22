@@ -79,6 +79,7 @@ class StoreVendingRequestRequest extends FormRequest
                 },
             ],
             'terms_accepted' => ['accepted'],
+            'sms_consent' => ['nullable', 'boolean'],
         ];
     }
 
@@ -122,6 +123,7 @@ class StoreVendingRequestRequest extends FormRequest
             'email' => 'email',
             'phone' => 'phone',
             'terms_accepted' => 'terms',
+            'sms_consent' => 'SMS consent',
         ];
     }
 }

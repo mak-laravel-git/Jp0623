@@ -44,6 +44,7 @@ class StoreCoffeeServiceRequestRequest extends FormRequest
             'email' => ['required', 'email', 'max:255'],
             'notes' => ['nullable', 'string', 'max:2000'],
             'terms_accepted' => ['accepted'],
+            'sms_consent' => ['nullable', 'boolean'],
         ];
     }
 
@@ -76,6 +77,7 @@ class StoreCoffeeServiceRequestRequest extends FormRequest
             'email' => 'email',
             'notes' => 'notes',
             'terms_accepted' => 'terms',
+            'sms_consent' => 'SMS consent',
         ];
     }
 }

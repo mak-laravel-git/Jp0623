@@ -2,6 +2,7 @@ import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { BrandButton } from '@/components/frontend/brand-button';
+import { SmsConsentCheckbox } from '@/components/frontend/sms-consent-checkbox';
 import { Wrap } from '@/components/frontend/wrap';
 import {
     LocationAutocomplete
@@ -48,6 +49,7 @@ const STEP_FIELDS: Record<number, string[]> = {
         'email',
         'phone',
         'terms_accepted',
+        'sms_consent',
     ],
 };
 
@@ -100,6 +102,7 @@ export function RequestSection({ data }: { data: RequestFormData }) {
         email: '',
         phone: '',
         terms_accepted: false,
+        sms_consent: false,
     });
 
     function applyLocation(suggestion: LocationSuggestion | null) {
@@ -732,6 +735,12 @@ export function RequestSection({ data }: { data: RequestFormData }) {
                                     </label>
                                     <FieldError
                                         message={errorFor('terms_accepted')}
+                                    />
+                                    <SmsConsentCheckbox
+                                        checked={form.data.sms_consent}
+                                        onChange={(checked) =>
+                                            form.setData('sms_consent', checked)
+                                        }
                                     />
                                 </div>
                             ) : null}
