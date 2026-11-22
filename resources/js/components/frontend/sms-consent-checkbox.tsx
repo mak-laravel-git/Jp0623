@@ -19,12 +19,13 @@ export function SmsConsentCheckbox({
                 className="mt-0.5 accent-brass"
             />
             <span>
-                (Optional) I agree to receive SMS text messages from Vending
-                Machine Location Services at the phone number I provided about
-                my request, service updates and offers. Message frequency
-                varies. Msg &amp; data rates may apply. Reply STOP to opt out or
-                HELP for help. Consent is not a condition of any purchase or
-                of submitting this form. See our{' '}
+                (Optional) I agree to receive SMS text messages from JPII
+                Holdings, doing business as Vending Machine Location Services,
+                at the phone number I provided about my request, service
+                updates and offers. Message frequency varies. Msg &amp; data
+                rates may apply. Reply STOP to opt out or HELP for help.
+                Consent is not a condition of any purchase or of submitting
+                this form. See our{' '}
                 <a
                     href="/legal/privacy"
                     target="_blank"
