@@ -29,6 +29,7 @@ import {
     Inbox,
     Mail,
     History,
+    Undo2,
 } from 'lucide-react';
 import { useMemo } from 'react';
 import AppLogo from '@/components/app-logo';
@@ -66,6 +67,7 @@ import adminMachines from '@/routes/admin/machines';
 import adminOfficeCoffeeFaqs from '@/routes/admin/office-coffee-faqs';
 import adminProducts from '@/routes/admin/products';
 import adminHeroSection from '@/routes/admin/hero-section';
+import adminLeadIssues from '@/routes/admin/lead-issues';
 import adminRouteInquiries from '@/routes/admin/route-inquiries';
 import adminRouteListings from '@/routes/admin/route-listings';
 import adminUserManagement from '@/routes/admin/user-management';
@@ -279,6 +281,12 @@ export function AppSidebar() {
                 href: adminRouteInquiries.index(),
                 icon: MessageSquare,
                 permissions: [PERMISSIONS.ROUTE_INQUIRIES.INDEX],
+            },
+            {
+                title: 'Lead issues',
+                href: adminLeadIssues.index(),
+                icon: Undo2,
+                permissions: [PERMISSIONS.LEAD_ISSUES.INDEX],
             },
             {
                 title: 'Cities',

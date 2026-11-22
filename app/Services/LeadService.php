@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\LeadIssueStatus;
 use App\Models\CoffeeServiceRequest;
 use App\Models\LeadPurchase;
 use App\Models\OperatorProfile;
@@ -80,6 +81,8 @@ class LeadService
      *
      * @return list<array{
      *     id: string,
+     *     purchase_id: int,
+     *     can_report: bool,
      *     payment_status: string,
      *     purchased_at: string,
      *     name: string|null,
@@ -101,13 +104,15 @@ class LeadService
      */
     public function purchasedBy(User $user): array
     {
+        $windowDays = app(LeadIssueSettingsService::class)->reportWindowDays();
+
         return $user->leadPurchases()
             ->whereIn('status', [LeadPurchase::STATUS_PAID, LeadPurchase::STATUS_PENDING])
-            ->with('leadable')
+            ->with(['leadable', 'issueReport'])
             ->latest()
             ->get()
             ->filter(fn (LeadPurchase $purchase): bool => $purchase->leadable !== null)
-            ->map(fn (LeadPurchase $purchase): array => $this->mapPurchased($purchase))
+            ->map(fn (LeadPurchase $purchase): array => $this->mapPurchased($purchase, $windowDays))
             ->values()
             ->all();
     }
@@ -274,7 +279,7 @@ class LeadService
     /**
      * @return array<string, mixed>
      */
-    private function mapPurchased(LeadPurchase $purchase): array
+    private function mapPurchased(LeadPurchase $purchase, ?int $windowDays): array
     {
         /** @var VendingRequest|CoffeeServiceRequest $lead */
         $lead = $purchase->leadable;
@@ -285,6 +290,8 @@ class LeadService
         // Contact details are only serialised once Square confirmed the payment.
         return [
             'id' => $this->publicId($lead),
+            'purchase_id' => $purchase->id,
+            'can_report' => app(LeadIssueReportService::class)->canReportWithin($purchase, $purchase->issueReport !== null, $windowDays),
             'payment_status' => $isPaid ? 'paid' : 'pending',
             'purchased_at' => ($purchase->purchased_at ?? $purchase->created_at)->format('M j'),
             'name' => $isPaid ? $lead->business_name : null,
@@ -300,7 +307,12 @@ class LeadService
             'email' => $isPaid ? $lead->email : null,
             'price' => $purchase->price,
             'credit_used' => null,
-            'status' => 'ok',
+            'status' => match ($purchase->issueReport?->status) {
+                LeadIssueStatus::OPEN => 'issue_open',
+                LeadIssueStatus::APPROVED => 'issue_approved',
+                LeadIssueStatus::REJECTED => 'issue_rejected',
+                default => 'ok',
+            },
             'receipt_url' => $isPaid ? $purchase->square_receipt_url : null,
             'card_brand' => $isPaid ? $purchase->card_brand : null,
             'card_last4' => $isPaid ? $purchase->card_last4 : null,

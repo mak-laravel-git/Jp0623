@@ -163,6 +163,11 @@ enum PermissionEnum: string
     case ROUTE_INQUIRIES_VIEW = 'route-inquiries.view';
     case ROUTE_INQUIRIES_EDIT = 'route-inquiries.edit';
 
+    // LEAD ISSUES (operators sending purchased leads back to the admin)
+    case LEAD_ISSUES_INDEX = 'lead-issues.index';
+    case LEAD_ISSUES_VIEW = 'lead-issues.view';
+    case LEAD_ISSUES_EDIT = 'lead-issues.edit';
+
     // OPERATOR SMS
     case OPERATOR_SMS_INDEX = 'operator-sms.index';
     case OPERATOR_SMS_SEND = 'operator-sms.send';
@@ -318,6 +323,10 @@ enum PermissionEnum: string
             self::ROUTE_INQUIRIES_INDEX,
             self::ROUTE_INQUIRIES_VIEW,
             self::ROUTE_INQUIRIES_EDIT => 'Route Inquiries',
+
+            self::LEAD_ISSUES_INDEX,
+            self::LEAD_ISSUES_VIEW,
+            self::LEAD_ISSUES_EDIT => 'Lead Issues',
 
             self::OPERATOR_SMS_INDEX,
             self::OPERATOR_SMS_SEND => 'Operator SMS',

@@ -171,6 +171,11 @@ export const PERMISSIONS = {
         VIEW: 'route-inquiries.view',
         EDIT: 'route-inquiries.edit',
     },
+    LEAD_ISSUES: {
+        INDEX: 'lead-issues.index',
+        VIEW: 'lead-issues.view',
+        EDIT: 'lead-issues.edit',
+    },
     OPERATOR_SMS: {
         INDEX: 'operator-sms.index',
         SEND: 'operator-sms.send',

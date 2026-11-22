@@ -116,39 +116,6 @@ class OperatorDashboardData
     }
 
     /**
-     * @return list<array<string, mixed>>
-     */
-    public static function tickets(): array
-    {
-        return [
-            [
-                'id' => 'T-208',
-                'lead' => 'Peach Bank · L-3074',
-                'issue' => 'Could not reach the location',
-                'opened' => 'Oct 30',
-                'status' => 'Under review',
-                'outcome' => null,
-            ],
-            [
-                'id' => 'T-171',
-                'lead' => 'Lone Star Gym · L-2950',
-                'issue' => 'Phone number is wrong',
-                'opened' => 'Sep 14',
-                'status' => 'Resolved',
-                'outcome' => '$40 account credit',
-            ],
-            [
-                'id' => 'T-133',
-                'lead' => 'Bayou Clinic · L-2811',
-                'issue' => 'Ordered by mistake',
-                'opened' => 'Aug 02',
-                'status' => 'Refunded',
-                'outcome' => '$95 refund to card',
-            ],
-        ];
-    }
-
-    /**
      * @return list<array{question: string, answer: string}>
      */
     public static function faq(): array

@@ -8,10 +8,12 @@ use App\Exceptions\Payments\PaymentFailedException;
 use App\Exceptions\Payments\SquareNotConfiguredException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Operator\PurchaseLeadRequest;
+use App\Models\LeadIssueReport;
 use App\Services\LeadPurchaseService;
 use App\Services\LeadService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -90,10 +92,28 @@ class LeadController extends Controller
         return redirect()->route('leads.purchased');
     }
 
-    public function tickets(): Response
+    /**
+     * The operator's requests to send purchased leads back, with the admin's decision.
+     */
+    public function tickets(Request $request): Response
     {
+        $tickets = LeadIssueReport::query()
+            ->where('user_id', $request->user()->id)
+            ->latest()
+            ->latest('id')
+            ->get()
+            ->map(fn (LeadIssueReport $report): array => [
+                'id' => 'T-'.$report->id,
+                'lead' => trim($report->lead_reference.' · '.($report->lead_name ?? ''), ' ·'),
+                'issue' => $report->category->label().': '.Str::limit($report->reason, 80),
+                'opened' => $report->created_at->format('M j'),
+                'status' => $report->status->label(),
+                'outcome' => $report->admin_note,
+            ])
+            ->all();
+
         return Inertia::render('operator/leads/tickets', [
-            'tickets' => OperatorDashboardData::tickets(),
+            'tickets' => $tickets,
         ]);
     }
 

@@ -78,7 +78,12 @@ export function PurchasedLeadDetailsDialog({
                     <Detail
                         label="Status"
                         value={
-                            lead.status === 'issue_open' ? 'Issue open' : 'OK'
+                            {
+                                ok: 'OK',
+                                issue_open: 'Return request open',
+                                issue_approved: 'Return approved',
+                                issue_rejected: 'Return rejected',
+                            }[lead.status]
                         }
                     />
                 </dl>
@@ -101,7 +106,7 @@ export function PurchasedLeadDetailsDialog({
                             </a>
                         </Button>
                     ) : null}
-                    {lead.status === 'ok' && onReportIssue ? (
+                    {lead.can_report && onReportIssue ? (
                         <Button
                             variant="outline"
                             onClick={() => {
@@ -109,7 +114,7 @@ export function PurchasedLeadDetailsDialog({
                                 onReportIssue(lead);
                             }}
                         >
-                            Report issue
+                            Return this lead
                         </Button>
                     ) : null}
                 </DialogFooter>
