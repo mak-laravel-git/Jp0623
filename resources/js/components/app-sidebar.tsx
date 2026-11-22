@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import {
+    BadgeCheck,
     BookOpen,
     Building2,
     CircleHelp,
@@ -80,6 +81,7 @@ import {
     faq as leadsFaq,
     index as leadsIndex,
     purchased as leadsPurchased,
+    sold as leadsSold,
     tickets as leadsTickets,
 } from '@/routes/leads';
 import { index as routesIndex } from '@/routes/routes';
@@ -131,6 +133,12 @@ export function AppSidebar() {
                             title: 'Purchased location leads',
                             href: leadsPurchased(),
                             icon: MapPin,
+                            permissions: [PERMISSIONS.DASHBOARD.VIEW],
+                        },
+                        {
+                            title: 'Sold leads near you',
+                            href: leadsSold(),
+                            icon: BadgeCheck,
                             permissions: [PERMISSIONS.DASHBOARD.VIEW],
                         },
                         // {

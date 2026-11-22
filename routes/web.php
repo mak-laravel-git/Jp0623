@@ -120,6 +120,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('membership.active')
         ->name('leads.index');
     Route::get('leads/purchased', [LeadController::class, 'purchased'])->name('leads.purchased');
+    Route::get('leads/sold', [LeadController::class, 'sold'])->name('leads.sold');
     Route::get('leads/tickets', [LeadController::class, 'tickets'])->name('leads.tickets');
     Route::get('leads/faq', [LeadController::class, 'faq'])->name('leads.faq');
     Route::post('leads/{source}/{lead}/purchase', [LeadController::class, 'purchase'])

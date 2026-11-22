@@ -14,6 +14,24 @@ export interface OperatorLead {
     listed: string;
 }
 
+/**
+ * A lead another operator already bought nearby. Only public details are sent:
+ * no business name, address, contact details or buyer.
+ */
+export interface OperatorSoldLead {
+    id: string;
+    type: string;
+    city: string;
+    st: string;
+    zip: string;
+    dist: number;
+    people: number | null;
+    wants: string;
+    price: number;
+    sold: string;
+    mine: boolean;
+}
+
 export type PurchasedLeadStatus = 'ok' | 'issue_open';
 
 export type LeadPaymentStatus = 'paid' | 'pending';
