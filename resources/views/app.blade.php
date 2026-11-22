@@ -14,6 +14,7 @@
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="google-site-verification" content="18VEoK-3rfNm52LNLNAr_eKvyiVADxl5248Ogmd7Z4A" />
 
     {{-- Inline script to detect system dark mode preference and apply it immediately --}}
     <script>
