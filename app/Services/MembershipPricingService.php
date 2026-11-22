@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Mail\MembershipCustomPriceMail;
 use App\Models\MembershipCustomPrice;
+use App\Models\MembershipPriceHistory;
 use App\Models\OperatorMembership;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,8 @@ use Throwable;
  * Decides what a member pays: the default monthly price, or a custom price agreed for that person.
  *
  * A member with a custom price pays it in any mode (even while membership is free for everyone else)
- * and never pays the default price.
+ * and never pays the default price. When the custom price is removed the member pays the current default
+ * price from then on (also while membership is free for everyone else).
  */
 class MembershipPricingService
 {
@@ -43,7 +45,10 @@ class MembershipPricingService
             ->where('email', MembershipCustomPrice::normalizeEmail($user->email))
             ->first();
 
-        $row?->forceFill(['user_id' => $user->id])->save();
+        if ($row !== null) {
+            // Linking the account is not a price change, so "updated at" stays as it was.
+            MembershipCustomPrice::withoutTimestamps(fn () => $row->forceFill(['user_id' => $user->id])->save());
+        }
 
         return $row;
     }
@@ -54,11 +59,24 @@ class MembershipPricingService
     }
 
     /**
+     * Whether the member was moved to the default price when their custom price was removed.
+     */
+    public function paysDefaultPrice(User $user): bool
+    {
+        return OperatorMembership::query()
+            ->where('user_id', $user->id)
+            ->where('pays_default_price', true)
+            ->exists();
+    }
+
+    /**
      * Whether this member has to pay to use the marketplace.
      */
     public function requiresPayment(User $user): bool
     {
-        return $this->customPriceFor($user) !== null || $this->settings->isPaid();
+        return $this->customPriceFor($user) !== null
+            || $this->settings->isPaid()
+            || $this->paysDefaultPrice($user);
     }
 
     public function priceFor(User $user): int
@@ -73,7 +91,7 @@ class MembershipPricingService
     {
         return match (true) {
             $this->customPriceFor($user) !== null => self::TYPE_CUSTOM,
-            $this->settings->isPaid() => self::TYPE_PAID,
+            $this->settings->isPaid() || $this->paysDefaultPrice($user) => self::TYPE_PAID,
             default => self::TYPE_FREE,
         };
     }
@@ -116,8 +134,11 @@ class MembershipPricingService
         $type = $this->typeFor($user);
         $price = $this->priceFor($user);
 
+        $paidPrice = $membership?->hasValidPaidPeriod() ? $membership->monthly_price : null;
+
         $status = match (true) {
             $membership === null => '',
+            $paidPrice !== null && $paidPrice !== $price && $membership->current_period_end !== null => ", from next renewal; paying \${$paidPrice}/mo until {$membership->current_period_end->format('M j')}",
             $membership->status === OperatorMembership::STATUS_ACTIVE && $membership->current_period_end !== null => ", active until {$membership->current_period_end->format('M j')}",
             $membership->status === OperatorMembership::STATUS_REQUIRED => ', payment required',
             $membership->status === OperatorMembership::STATUS_PAST_DUE => ', past due',
@@ -134,6 +155,7 @@ class MembershipPricingService
 
     /**
      * Save a custom price for an email, whether or not that person has an account yet.
+     * Every real change is written to the price history.
      */
     public function set(string $email, int $price, ?User $admin = null): MembershipCustomPrice
     {
@@ -143,11 +165,24 @@ class MembershipPricingService
             $user = User::query()->whereRaw('LOWER(email) = ?', [$email])->first();
 
             $row = MembershipCustomPrice::query()->firstOrNew(['email' => $email]);
+            $oldPrice = $row->exists ? $row->monthly_price : null;
+
             $row->fill([
                 'monthly_price' => $price,
                 'user_id' => $user?->id,
                 'created_by' => $row->created_by ?? $admin?->id,
             ])->save();
+
+            if ($oldPrice !== $price) {
+                $this->recordHistory(
+                    $email,
+                    $user?->id,
+                    $oldPrice === null ? MembershipPriceHistory::ACTION_CREATED : MembershipPriceHistory::ACTION_UPDATED,
+                    $oldPrice,
+                    $price,
+                    $admin,
+                );
+            }
 
             if ($user !== null) {
                 $this->applyToMembership($user, $price);
@@ -158,31 +193,41 @@ class MembershipPricingService
     }
 
     /**
-     * Remove the custom price: the member goes back to the default membership.
+     * Remove the custom price. A member with an account moves to the current default price and has to pay it,
+     * also while membership is free for everyone else; an email without an account is simply forgotten.
      */
-    public function remove(MembershipCustomPrice $row): void
+    public function remove(MembershipCustomPrice $row, ?User $admin = null): void
     {
-        DB::transaction(function () use ($row): void {
+        DB::transaction(function () use ($row, $admin): void {
             $userId = $row->user_id;
+            $defaultPrice = $this->settings->monthlyPrice();
+
             $row->delete();
+
+            $this->recordHistory(
+                $row->email,
+                $userId,
+                MembershipPriceHistory::ACTION_REMOVED,
+                $row->monthly_price,
+                $userId !== null ? $defaultPrice : null,
+                $admin,
+            );
 
             if ($userId === null) {
                 return;
             }
 
-            $membership = OperatorMembership::query()->where('user_id', $userId)->lockForUpdate()->first();
+            $membership = OperatorMembership::query()->where('user_id', $userId)->lockForUpdate()->first()
+                ?? new OperatorMembership(['user_id' => $userId, 'status' => OperatorMembership::STATUS_ACTIVE_FREE]);
 
-            if ($membership === null) {
-                return;
-            }
-
-            $updates = ['monthly_price' => $this->settings->monthlyPrice()];
-
-            if ($this->settings->isFree() && $membership->status === OperatorMembership::STATUS_REQUIRED) {
-                $updates['status'] = OperatorMembership::STATUS_ACTIVE_FREE;
-            }
-
-            $membership->forceFill($updates)->save();
+            $membership->forceFill([
+                // While a paid period is running, monthly_price stays the price that was paid for it.
+                'monthly_price' => $membership->hasValidPaidPeriod() ? $membership->monthly_price : $defaultPrice,
+                'pays_default_price' => true,
+                'status' => $membership->status === OperatorMembership::STATUS_ACTIVE_FREE
+                    ? OperatorMembership::STATUS_REQUIRED
+                    : $membership->status,
+            ])->save();
         });
     }
 
@@ -194,11 +239,19 @@ class MembershipPricingService
     {
         $name = $row->user_id !== null ? User::query()->whereKey($row->user_id)->value('name') : null;
 
+        $paidPeriod = $row->user_id !== null
+            ? OperatorMembership::query()->where('user_id', $row->user_id)->first()
+            : null;
+        $appliesFrom = $paidPeriod?->hasValidPaidPeriod() && $paidPeriod->monthly_price !== $row->monthly_price
+            ? ($paidPeriod->next_billing_at ?? $paidPeriod->current_period_end)?->format('F j, Y')
+            : null;
+
         try {
             Mail::to($row->email)->queue(new MembershipCustomPriceMail(
                 price: $row->monthly_price,
                 name: is_string($name) ? $name : null,
                 registered: $row->user_id !== null,
+                appliesFrom: $appliesFrom,
             ));
         } catch (Throwable $exception) {
             report($exception);
@@ -208,7 +261,31 @@ class MembershipPricingService
 
         $row->forceFill(['notified_at' => now()])->save();
 
+        MembershipPriceHistory::query()
+            ->where('email', $row->email)
+            ->latest('id')
+            ->limit(1)
+            ->update(['email_sent' => true]);
+
         return true;
+    }
+
+    private function recordHistory(
+        string $email,
+        ?int $userId,
+        string $action,
+        ?int $oldPrice,
+        ?int $newPrice,
+        ?User $admin,
+    ): void {
+        MembershipPriceHistory::query()->create([
+            'email' => $email,
+            'user_id' => $userId,
+            'action' => $action,
+            'old_price' => $oldPrice,
+            'new_price' => $newPrice,
+            'changed_by' => $admin?->id,
+        ]);
     }
 
     /**
@@ -223,7 +300,12 @@ class MembershipPricingService
             return;
         }
 
-        $updates = ['monthly_price' => $price];
+        $updates = ['pays_default_price' => false];
+
+        // While a paid period is running, monthly_price stays the price that was paid for it.
+        if (! $membership->hasValidPaidPeriod()) {
+            $updates['monthly_price'] = $price;
+        }
 
         if ($membership->status === OperatorMembership::STATUS_ACTIVE_FREE) {
             $updates['status'] = OperatorMembership::STATUS_REQUIRED;

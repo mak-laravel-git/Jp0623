@@ -27,6 +27,7 @@ class MembershipCustomPriceMail extends Mailable implements ShouldQueue
         public int $price,
         public ?string $name,
         public bool $registered,
+        public ?string $appliesFrom = null,
     ) {
         $this->afterCommit();
     }
@@ -48,6 +49,7 @@ class MembershipCustomPriceMail extends Mailable implements ShouldQueue
                 'price' => $this->price,
                 'name' => $this->name,
                 'registered' => $this->registered,
+                'appliesFrom' => $this->appliesFrom,
                 'url' => $this->registered ? route('subscription.index') : route('register'),
             ],
         );

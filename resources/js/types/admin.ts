@@ -184,6 +184,67 @@ export interface AdminMembershipCustomPrice {
     registered: boolean;
     membership_status: string | null;
     created_at: string;
+    updated_at: string;
+}
+
+export type LeadIssueStatus = 'open' | 'approved' | 'rejected';
+
+export interface AdminLeadIssueRow {
+    id: number;
+    ticket: string;
+    lead_reference: string;
+    lead_name: string | null;
+    lead_city: string | null;
+    operator_name: string;
+    operator_email: string;
+    category: string;
+    category_label: string;
+    reason: string;
+    status: LeadIssueStatus;
+    status_label: string;
+    price: number;
+    created_at: string;
+}
+
+export interface AdminLeadIssueDetail {
+    id: number;
+    ticket: string;
+    status: LeadIssueStatus;
+    status_label: string;
+    category: string;
+    category_label: string;
+    reason: string;
+    admin_note: string | null;
+    resolved_by: string | null;
+    resolved_at: string | null;
+    created_at: string;
+    lead_reference: string;
+    lead_name: string | null;
+    lead_type: string | null;
+    lead_city: string | null;
+    price: number;
+    purchased_at: string | null;
+    receipt_url: string | null;
+    payment_status: string;
+    operator: {
+        name: string;
+        email: string;
+        phone: string | null;
+        company: string | null;
+    };
+}
+
+export interface AdminMembershipPriceHistory {
+    id: number;
+    email: string;
+    member_name: string | null;
+    registered: boolean;
+    action: 'created' | 'updated' | 'removed';
+    old_price: number | null;
+    new_price: number | null;
+    changed_by: string | null;
+    email_sent: boolean;
+    created_at: string;
 }
 
 export interface MembershipCustomPriceLookup {

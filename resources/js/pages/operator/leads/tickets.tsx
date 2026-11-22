@@ -21,11 +21,26 @@ interface Ticket {
 }
 
 function statusBadge(status: string) {
-    if (status === 'Resolved' || status === 'Refunded') {
+    if (
+        status === 'Resolved' ||
+        status === 'Refunded' ||
+        status === 'Return approved'
+    ) {
         return (
             <Badge
                 variant="outline"
                 className="border-emerald-500/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200"
+            >
+                {status}
+            </Badge>
+        );
+    }
+
+    if (status === 'Return rejected') {
+        return (
+            <Badge
+                variant="outline"
+                className="border-destructive/40 bg-destructive/10 text-destructive"
             >
                 {status}
             </Badge>
@@ -53,8 +68,8 @@ export default function LeadTickets({ tickets }: { tickets: Ticket[] }) {
                         Lead issues &amp; tickets
                     </h1>
                     <p className="mt-1 max-w-3xl text-muted-foreground">
-                        Track issues you&apos;ve reported and any refunds or
-                        credits.
+                        Track the leads you sent back to the admin and the
+                        decision on each one.
                     </p>
                 </div>
 
@@ -72,6 +87,18 @@ export default function LeadTickets({ tickets }: { tickets: Ticket[] }) {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
+                                {tickets.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={6}
+                                            className="py-10 text-center text-muted-foreground"
+                                        >
+                                            No requests yet. Use “Return this
+                                            lead” on a purchased lead to send
+                                            one to the admin.
+                                        </TableCell>
+                                    </TableRow>
+                                ) : null}
                                 {tickets.map((ticket) => (
                                     <TableRow key={ticket.id}>
                                         <TableCell className="font-mono text-xs">

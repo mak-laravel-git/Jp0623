@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useSquareCard } from '@/hooks/use-square-card';
 import { dashboard } from '@/routes';
 import {
+    autoRenew as subscriptionAutoRenew,
     checkout as subscriptionCheckout,
     index as subscriptionIndex,
 } from '@/routes/subscription';
@@ -22,8 +23,15 @@ type SubscriptionPageProps = {
         card_last4: string | null;
         current_period_end: string | null;
         next_billing_at: string | null;
+        current_price: number | null;
         needs_payment: boolean;
         allows_access: boolean;
+        auto_renew: boolean;
+        can_change_auto_renew: boolean;
+        next_payment: {
+            amount: number;
+            date: string | null;
+        } | null;
     };
     square: {
         applicationId: string;
@@ -85,9 +93,35 @@ export default function SubscriptionIndex({
         tokenize,
     } = useSquareCard(square ?? usePage().props.square ?? null, showCheckout);
 
-    const planPrice = settings.is_paid
-        ? `$${settings.monthly_price}/mo`
-        : 'Free';
+    const [togglingAutoRenew, setTogglingAutoRenew] = useState(false);
+
+    function formatDate(value: string | null): string {
+        return value ? new Date(value).toLocaleDateString() : '';
+    }
+
+    function changeAutoRenew(next: boolean) {
+        router.put(
+            subscriptionAutoRenew().url,
+            { auto_renew: next },
+            {
+                preserveScroll: true,
+                onStart: () => setTogglingAutoRenew(true),
+                onFinish: () => setTogglingAutoRenew(false),
+            },
+        );
+    }
+
+    // While a paid period is running, "current plan" is what was paid for it, not the price of the next renewal.
+    const planPrice =
+        membership.current_price !== null
+            ? `$${membership.current_price}/mo`
+            : settings.is_paid
+              ? `$${settings.monthly_price}/mo`
+              : 'Free';
+    const priceChangesNext =
+        membership.next_payment !== null &&
+        membership.current_price !== null &&
+        membership.next_payment.amount !== membership.current_price;
 
     async function handlePay() {
         if (processing) {
@@ -174,6 +208,12 @@ export default function SubscriptionIndex({
                                     {membership.card_last4}
                                 </p>
                             ) : null}
+                            {membership.status === 'canceled' ? (
+                                <p className="mt-3 text-sm text-muted-foreground">
+                                    Your membership has ended and you were not
+                                    charged again. Pay to reactivate it.
+                                </p>
+                            ) : null}
                             <div className="mt-6 border-t pt-5">
                                 <h3 className="mb-3 text-sm font-semibold">
                                     What&apos;s included
@@ -225,6 +265,13 @@ export default function SubscriptionIndex({
                             <p className="mt-3 text-4xl font-extrabold tracking-tight">
                                 {planPrice}
                             </p>
+                            {membership.current_price !== null &&
+                            membership.current_period_end ? (
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    Paid for the current period, until{' '}
+                                    {formatDate(membership.current_period_end)}.
+                                </p>
+                            ) : null}
                             <p className="mt-3 text-sm">
                                 Status:{' '}
                                 <span className="inline-flex rounded bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-800 dark:text-emerald-200">
@@ -238,13 +285,54 @@ export default function SubscriptionIndex({
                                     {membership.card_last4}
                                 </p>
                             ) : null}
-                            {membership.current_period_end ? (
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    Current period ends{' '}
-                                    {new Date(
-                                        membership.current_period_end,
-                                    ).toLocaleDateString()}
+                            {membership.next_payment ? (
+                                <p className="mt-3 rounded-lg border bg-muted/40 p-3 text-sm">
+                                    Next payment:{' '}
+                                    <strong>
+                                        ${membership.next_payment.amount}
+                                    </strong>{' '}
+                                    on{' '}
+                                    <strong>
+                                        {formatDate(membership.next_payment.date)}
+                                    </strong>
+                                    . Your card will be charged automatically.
+                                    {priceChangesNext ? (
+                                        <span className="mt-1 block text-muted-foreground">
+                                            Your price changes from $
+                                            {membership.current_price} to $
+                                            {membership.next_payment.amount}{' '}
+                                            from your next renewal. This period
+                                            stays at ${membership.current_price}
+                                            .
+                                        </span>
+                                    ) : null}
                                 </p>
+                            ) : membership.current_period_end ? (
+                                <p className="mt-3 rounded-lg border bg-muted/40 p-3 text-sm">
+                                    {membership.status === 'active' &&
+                                    !membership.auto_renew
+                                        ? 'Auto-renew is off. You will not be charged again. '
+                                        : ''}
+                                    Your membership ends on{' '}
+                                    <strong>
+                                        {formatDate(membership.current_period_end)}
+                                    </strong>
+                                    .
+                                </p>
+                            ) : null}
+                            {membership.can_change_auto_renew ? (
+                                <Button
+                                    className="mt-4"
+                                    variant="outline"
+                                    disabled={togglingAutoRenew}
+                                    onClick={() =>
+                                        changeAutoRenew(!membership.auto_renew)
+                                    }
+                                >
+                                    {membership.auto_renew
+                                        ? 'Turn off auto-renew'
+                                        : 'Turn on auto-renew'}
+                                </Button>
                             ) : null}
                             {!settings.is_paid ? (
                                 <p className="mt-3 text-sm text-muted-foreground">

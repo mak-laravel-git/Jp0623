@@ -32,7 +32,11 @@ export interface OperatorSoldLead {
     mine: boolean;
 }
 
-export type PurchasedLeadStatus = 'ok' | 'issue_open';
+export type PurchasedLeadStatus =
+    | 'ok'
+    | 'issue_open'
+    | 'issue_approved'
+    | 'issue_rejected';
 
 export type LeadPaymentStatus = 'paid' | 'pending';
 
@@ -42,6 +46,8 @@ export type LeadPaymentStatus = 'paid' | 'pending';
  */
 export interface PurchasedLead {
     id: string;
+    purchase_id: number;
+    can_report: boolean;
     payment_status: LeadPaymentStatus;
     purchased_at: string;
     name: string | null;
@@ -81,6 +87,9 @@ export interface OperatorDashboardProps {
         needs_payment: boolean;
         is_paid_mode: boolean;
         monthly_price: number;
+        auto_renew: boolean;
+        next_payment: { amount: number; date: string } | null;
+        ends_on: string | null;
     };
     kpis: OperatorKpi[];
     leads: OperatorLead[];

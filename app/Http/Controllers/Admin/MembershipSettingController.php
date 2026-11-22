@@ -33,6 +33,7 @@ class MembershipSettingController extends Controller
                 'registered' => $row->user !== null,
                 'membership_status' => $row->user?->membership?->status,
                 'created_at' => $row->created_at->toIso8601String(),
+                'updated_at' => $row->updated_at->toIso8601String(),
             ]);
 
         return Inertia::render('admin/membership-settings/edit', [

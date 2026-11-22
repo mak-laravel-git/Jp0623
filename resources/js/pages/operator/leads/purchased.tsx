@@ -21,12 +21,11 @@ function money(value: number): string {
 }
 
 export default function PurchasedLeads({
-    purchasedLeads: initialLeads,
+    purchasedLeads: leads,
 }: {
     purchasedLeads: PurchasedLead[];
     primaryCity: string;
 }) {
-    const [leads, setLeads] = useState(initialLeads);
     const [detailsLead, setDetailsLead] = useState<PurchasedLead | null>(null);
     const [issueLead, setIssueLead] = useState<PurchasedLead | null>(null);
 
@@ -40,16 +39,6 @@ export default function PurchasedLeads({
         setIssueLead(lead);
     };
 
-    const markIssueOpen = (leadId: string) => {
-        setLeads((current) =>
-            current.map((lead) =>
-                lead.id === leadId
-                    ? { ...lead, status: 'issue_open' as const }
-                    : lead,
-            ),
-        );
-    };
-
     return (
         <>
             <Head title="Purchased location leads" />
@@ -61,7 +50,8 @@ export default function PurchasedLeads({
                     </h1>
                     <p className="mt-1 max-w-3xl text-muted-foreground">
                         Select a location to view full details. If something
-                        went wrong, report an issue within 7 days.
+                        went wrong, send the lead back to the admin with a
+                        written reason.
                     </p>
                 </div>
 
@@ -161,9 +151,23 @@ export default function PurchasedLeads({
                                                     variant="outline"
                                                     className="border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200"
                                                 >
-                                                    Issue open
+                                                    Return request open
                                                 </Badge>
-                                            ) : (
+                                            ) : lead.status === 'issue_approved' ? (
+                                                <Badge
+                                                    variant="outline"
+                                                    className="border-emerald-500/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200"
+                                                >
+                                                    Return approved
+                                                </Badge>
+                                            ) : lead.status === 'issue_rejected' ? (
+                                                <Badge
+                                                    variant="outline"
+                                                    className="border-destructive/40 bg-destructive/10 text-destructive"
+                                                >
+                                                    Return rejected
+                                                </Badge>
+                                            ) : lead.can_report ? (
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
@@ -171,9 +175,9 @@ export default function PurchasedLeads({
                                                         openIssue(lead)
                                                     }
                                                 >
-                                                    Report issue
+                                                    Return this lead
                                                 </Button>
-                                            )}
+                                            ) : null}
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -206,7 +210,6 @@ export default function PurchasedLeads({
                         setIssueLead(null);
                     }
                 }}
-                onSubmitted={markIssueOpen}
             />
         </>
     );

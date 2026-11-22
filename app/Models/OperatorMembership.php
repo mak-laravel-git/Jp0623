@@ -44,6 +44,8 @@ class OperatorMembership extends Model
         'user_id',
         'status',
         'monthly_price',
+        'pays_default_price',
+        'auto_renew',
         'square_customer_id',
         'square_card_id',
         'card_brand',
@@ -89,6 +91,14 @@ class OperatorMembership extends Model
     }
 
     /**
+     * Whether the member can switch auto-renew on or off: only while a paid period is running.
+     */
+    public function canChangeAutoRenew(): bool
+    {
+        return $this->hasValidPaidPeriod();
+    }
+
+    /**
      * When an active paid period has ended, mark past_due without touching other rows.
      */
     public function markExpiredPaidPeriodIfNeeded(): void
@@ -101,9 +111,11 @@ class OperatorMembership extends Model
             return;
         }
 
-        $this->forceFill([
-            'status' => self::STATUS_PAST_DUE,
-        ])->save();
+        // A member who switched auto-renew off is not charged again: the membership simply ends.
+        $this->forceFill($this->auto_renew
+            ? ['status' => self::STATUS_PAST_DUE]
+            : ['status' => self::STATUS_CANCELED, 'canceled_at' => $this->canceled_at ?? now()],
+        )->save();
     }
 
     /**
@@ -113,6 +125,8 @@ class OperatorMembership extends Model
     {
         return [
             'monthly_price' => 'integer',
+            'pays_default_price' => 'boolean',
+            'auto_renew' => 'boolean',
             'current_period_start' => 'datetime',
             'current_period_end' => 'datetime',
             'next_billing_at' => 'datetime',

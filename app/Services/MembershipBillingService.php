@@ -30,10 +30,13 @@ class MembershipBillingService
         $failed = 0;
         $skipped = 0;
 
-        // While membership is free for everyone, only members with a custom price are billed.
+        // While membership is free for everyone, only members with a custom price (or who were moved to the
+        // default price when their custom price was removed) are billed.
         $onlyCustomPrices = $this->settings->isFree();
 
-        if ($onlyCustomPrices && ! MembershipCustomPrice::query()->exists()) {
+        if ($onlyCustomPrices
+            && ! MembershipCustomPrice::query()->exists()
+            && ! OperatorMembership::query()->where('pays_default_price', true)->exists()) {
             return compact('charged', 'failed', 'skipped');
         }
 
@@ -43,8 +46,11 @@ class MembershipBillingService
             return compact('charged', 'failed', 'skipped');
         }
 
+        $this->endMembershipsWithoutAutoRenew();
+
         $due = OperatorMembership::query()
             ->where('status', OperatorMembership::STATUS_ACTIVE)
+            ->where('auto_renew', true)
             ->whereNotNull('next_billing_at')
             ->where('next_billing_at', '<=', now())
             ->whereNotNull('square_customer_id')
@@ -56,7 +62,8 @@ class MembershipBillingService
         if ($onlyCustomPrices) {
             $due = $due->filter(
                 fn (OperatorMembership $membership): bool => $membership->user !== null
-                    && $this->pricing->customPriceFor($membership->user) !== null,
+                    && ($membership->pays_default_price
+                        || $this->pricing->customPriceFor($membership->user) !== null),
             );
         }
 
@@ -183,6 +190,22 @@ class MembershipBillingService
 
             return $lockedPayment->refresh();
         });
+    }
+
+    /**
+     * Members who switched auto-renew off are never charged again; when their paid period is over the
+     * membership is marked canceled.
+     */
+    private function endMembershipsWithoutAutoRenew(): void
+    {
+        OperatorMembership::query()
+            ->where('status', OperatorMembership::STATUS_ACTIVE)
+            ->where('auto_renew', false)
+            ->where('current_period_end', '<=', now())
+            ->update([
+                'status' => OperatorMembership::STATUS_CANCELED,
+                'canceled_at' => now(),
+            ]);
     }
 
     private function markPastDue(

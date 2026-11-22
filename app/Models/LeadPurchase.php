@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
@@ -125,6 +126,16 @@ class LeadPurchase extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * The request to send this lead back to the admin, if the operator made one.
+     *
+     * @return HasOne<LeadIssueReport, $this>
+     */
+    public function issueReport(): HasOne
+    {
+        return $this->hasOne(LeadIssueReport::class);
     }
 
     /**

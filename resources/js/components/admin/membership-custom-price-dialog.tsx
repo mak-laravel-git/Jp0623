@@ -13,22 +13,32 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { lookup, store } from '@/routes/admin/membership-settings/custom-prices';
-import type { MembershipCustomPriceLookup } from '@/types/admin';
+import {
+    lookup,
+    store,
+    update,
+} from '@/routes/admin/membership-settings/custom-prices';
+import type {
+    AdminMembershipCustomPrice,
+    MembershipCustomPriceLookup,
+} from '@/types/admin';
 
 /**
  * Sets a custom monthly price for one member, by email. Works for an email that has no account yet.
+ * With `editing` it changes the price of an existing entry (the email stays as it is).
  */
 export function MembershipCustomPriceDialog({
     open,
     onOpenChange,
+    editing = null,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    editing?: AdminMembershipCustomPrice | null;
 }) {
     const form = useForm(store(), {
-        email: '',
-        monthly_price: '' as string | number,
+        email: editing?.email ?? '',
+        monthly_price: (editing?.monthly_price ?? '') as string | number,
         send_email: true,
     });
     const [found, setFound] = useState<MembershipCustomPriceLookup | null>(
@@ -93,7 +103,7 @@ export function MembershipCustomPriceDialog({
             return;
         }
 
-        form.submit({
+        form.submit(editing ? update(editing.id) : store(), {
             preserveScroll: true,
             onSuccess: () => handleOpenChange(false),
         });
@@ -104,12 +114,15 @@ export function MembershipCustomPriceDialog({
             <DialogContent className="sm:max-w-lg">
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <DialogHeader>
-                        <DialogTitle>Custom member pricing</DialogTitle>
+                        <DialogTitle>
+                            {editing
+                                ? 'Edit custom price'
+                                : 'Custom member pricing'}
+                        </DialogTitle>
                         <DialogDescription>
-                            Set a monthly price for one person. They pay this
-                            instead of the default price, whatever the
-                            membership mode is. The email does not need to have
-                            an account yet.
+                            {editing
+                                ? 'Change the monthly price for this person. The change is saved in the price history.'
+                                : 'Set a monthly price for one person. They pay this instead of the default price, whatever the membership mode is. The email does not need to have an account yet.'}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -128,6 +141,7 @@ export function MembershipCustomPriceDialog({
                                     setLookupError(null);
                                 }}
                                 onBlur={() => void checkEmail()}
+                                readOnly={editing !== null}
                                 aria-invalid={!!form.errors.email}
                                 className="min-w-0 flex-1"
                             />
@@ -204,7 +218,11 @@ export function MembershipCustomPriceDialog({
                             Cancel
                         </Button>
                         <Button type="submit" disabled={form.processing}>
-                            {form.processing ? 'Saving…' : 'Save price'}
+                            {form.processing
+                                ? 'Saving…'
+                                : editing
+                                  ? 'Update price'
+                                  : 'Save price'}
                         </Button>
                     </DialogFooter>
                 </form>

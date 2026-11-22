@@ -201,3 +201,43 @@ test('the membership type is free, paid or custom', function () {
     expect($pricing->typeFor($user))->toBe('custom')
         ->and($pricing->priceFor($user))->toBe(10);
 });
+
+test('in free mode a member moved to the default price is billed the default price and others are not', function () {
+    fakeCustomPriceTestSquare();
+    setCustomPriceTestMode(MembershipSetting::MODE_FREE, 33);
+
+    $moved = makeOperator();
+    $other = makeOperator();
+
+    foreach ([$moved, $other] as $operator) {
+        OperatorMembership::factory()->active()->create([
+            'user_id' => $operator->id,
+            'monthly_price' => 15,
+            'pays_default_price' => $operator->is($moved),
+            'current_period_end' => now()->subHour(),
+            'next_billing_at' => now()->subHour(),
+        ]);
+    }
+
+    $this->artisan('memberships:bill')->assertSuccessful();
+
+    $payment = MembershipPayment::query()->sole();
+
+    expect($payment->user_id)->toBe($moved->id)
+        ->and($payment->price)->toBe(33);
+});
+
+test('a member moved to the default price must pay at checkout while others stay free', function () {
+    fakeCustomPriceTestSquare();
+    setCustomPriceTestMode(MembershipSetting::MODE_FREE, 33);
+
+    $moved = makeOperator();
+    OperatorMembership::factory()->required()->create(['user_id' => $moved->id, 'pays_default_price' => true]);
+
+    $this->actingAs($moved)->get(route('leads.index'))->assertRedirect(route('subscription.index'));
+    $this->actingAs($moved)->post(route('subscription.checkout'), ['source_id' => 'cnon:x'])->assertRedirect();
+
+    expect(MembershipPayment::query()->sole()->price)->toBe(33);
+
+    $this->actingAs(makeOperator())->get(route('leads.index'))->assertOk();
+});

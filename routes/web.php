@@ -10,12 +10,14 @@ use App\Http\Controllers\Admin\CoffeeTypeController;
 use App\Http\Controllers\Admin\ContactMessageController as AdminContactMessageController;
 use App\Http\Controllers\Admin\HeroSectionController;
 use App\Http\Controllers\Admin\HomeFaqController;
+use App\Http\Controllers\Admin\LeadIssueController as AdminLeadIssueController;
 use App\Http\Controllers\Admin\LegalPageController;
 use App\Http\Controllers\Admin\LocationTypeController;
 use App\Http\Controllers\Admin\MachineCategoryController;
 use App\Http\Controllers\Admin\MachineController;
 use App\Http\Controllers\Admin\MachineFaqController;
 use App\Http\Controllers\Admin\MembershipCustomPriceController;
+use App\Http\Controllers\Admin\MembershipPriceHistoryController;
 use App\Http\Controllers\Admin\MembershipSettingController;
 use App\Http\Controllers\Admin\OfficeCoffeeFaqController;
 use App\Http\Controllers\Admin\OperatorSmsController;
@@ -55,6 +57,8 @@ use App\Http\Controllers\Frontend\VendingRequestController;
 use App\Http\Controllers\Operator\AccountController;
 use App\Http\Controllers\Operator\BillingController;
 use App\Http\Controllers\Operator\LeadController;
+use App\Http\Controllers\Operator\LeadIssueController as OperatorLeadIssueController;
+use App\Http\Controllers\Operator\MembershipAutoRenewController;
 use App\Http\Controllers\Operator\MembershipCheckoutController;
 use App\Http\Controllers\Operator\RouteController;
 use App\Http\Controllers\Operator\RouteInquiryController;
@@ -129,6 +133,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->whereNumber('lead')
         ->middleware(['membership.active', 'throttle:10,1'])
         ->name('leads.purchase');
+    Route::post('leads/purchases/{purchase}/issue', [OperatorLeadIssueController::class, 'store'])
+        ->whereNumber('purchase')
+        ->middleware('throttle:10,1')
+        ->name('leads.purchases.issue.store');
     Route::get('routes', [RouteController::class, 'index'])->name('routes.index');
     Route::post('routes/{route_listing}/inquiries', [RouteInquiryController::class, 'store'])
         ->whereNumber('route_listing')
@@ -143,6 +151,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('subscription/checkout', [MembershipCheckoutController::class, 'store'])
         ->middleware('throttle:10,1')
         ->name('subscription.checkout');
+    Route::put('subscription/auto-renew', [MembershipAutoRenewController::class, 'update'])
+        ->middleware('throttle:20,1')
+        ->name('subscription.auto-renew');
     Route::get('billing', [BillingController::class, 'index'])->name('billing.index');
 
     // ── Demo landing page ─────────────────────────────────────────────────────
@@ -348,9 +359,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->middleware('permission:'.PermissionEnum::MEMBERSHIP_SETTINGS_EDIT->value);
             Route::post('membership-settings/custom-prices', 'store')->name('membership-settings.custom-prices.store')
                 ->middleware('permission:'.PermissionEnum::MEMBERSHIP_SETTINGS_EDIT->value);
+            Route::put('membership-settings/custom-prices/{custom_price}', 'update')->name('membership-settings.custom-prices.update')
+                ->middleware('permission:'.PermissionEnum::MEMBERSHIP_SETTINGS_EDIT->value);
             Route::delete('membership-settings/custom-prices/{custom_price}', 'destroy')->name('membership-settings.custom-prices.destroy')
                 ->middleware('permission:'.PermissionEnum::MEMBERSHIP_SETTINGS_EDIT->value);
         });
+
+        // Read-only log of custom membership price changes.
+        Route::get('membership-price-history', [MembershipPriceHistoryController::class, 'index'])
+            ->name('membership-price-history.index')
+            ->middleware('permission:'.PermissionEnum::MEMBERSHIP_SETTINGS_EDIT->value);
 
         // Hero section — the text and pictures at the top of the home page.
         Route::controller(HeroSectionController::class)->group(function () {
@@ -569,6 +587,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->middleware('permission:'.PermissionEnum::ROUTE_INQUIRIES_VIEW->value);
             Route::put('route-inquiries/{route_inquiry}', 'update')->name('route-inquiries.update')
                 ->middleware('permission:'.PermissionEnum::ROUTE_INQUIRIES_EDIT->value);
+        });
+
+        // Purchased leads that operators sent back with a written reason.
+        Route::controller(AdminLeadIssueController::class)->group(function () {
+            Route::get('lead-issues', 'index')->name('lead-issues.index')
+                ->middleware('permission:'.PermissionEnum::LEAD_ISSUES_INDEX->value);
+            Route::put('lead-issues/settings', 'updateSettings')->name('lead-issues.settings.update')
+                ->middleware('permission:'.PermissionEnum::LEAD_ISSUES_EDIT->value);
+            Route::get('lead-issues/{lead_issue}', 'show')->name('lead-issues.show')
+                ->middleware('permission:'.PermissionEnum::LEAD_ISSUES_VIEW->value);
+            Route::put('lead-issues/{lead_issue}', 'update')->name('lead-issues.update')
+                ->middleware('permission:'.PermissionEnum::LEAD_ISSUES_EDIT->value);
         });
 
     });

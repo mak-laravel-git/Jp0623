@@ -28,6 +28,8 @@ import {
     UserCog,
     Inbox,
     Mail,
+    History,
+    Undo2,
 } from 'lucide-react';
 import { useMemo } from 'react';
 import AppLogo from '@/components/app-logo';
@@ -65,12 +67,14 @@ import adminMachines from '@/routes/admin/machines';
 import adminOfficeCoffeeFaqs from '@/routes/admin/office-coffee-faqs';
 import adminProducts from '@/routes/admin/products';
 import adminHeroSection from '@/routes/admin/hero-section';
+import adminLeadIssues from '@/routes/admin/lead-issues';
 import adminRouteInquiries from '@/routes/admin/route-inquiries';
 import adminRouteListings from '@/routes/admin/route-listings';
 import adminUserManagement from '@/routes/admin/user-management';
 import adminCoffeeServiceRequests from '@/routes/admin/coffee-service-requests';
 import adminContactMessages from '@/routes/admin/contact-messages';
 import adminOperatorSms from '@/routes/admin/operator-sms';
+import adminMembershipPriceHistory from '@/routes/admin/membership-price-history';
 import adminMembershipSettings from '@/routes/admin/membership-settings';
 import adminLegalPages from '@/routes/admin/legal-pages';
 import adminPayments from '@/routes/admin/payments';
@@ -279,6 +283,12 @@ export function AppSidebar() {
                 permissions: [PERMISSIONS.ROUTE_INQUIRIES.INDEX],
             },
             {
+                title: 'Lead issues',
+                href: adminLeadIssues.index(),
+                icon: Undo2,
+                permissions: [PERMISSIONS.LEAD_ISSUES.INDEX],
+            },
+            {
                 title: 'Cities',
                 href: adminCities.index(),
                 icon: Building2,
@@ -330,6 +340,12 @@ export function AppSidebar() {
                 title: 'Membership settings',
                 href: adminMembershipSettings.edit(),
                 icon: CreditCard,
+                permissions: [PERMISSIONS.MEMBERSHIP_SETTINGS.EDIT],
+            },
+            {
+                title: 'Price history',
+                href: adminMembershipPriceHistory.index(),
+                icon: History,
                 permissions: [PERMISSIONS.MEMBERSHIP_SETTINGS.EDIT],
             },
             {
