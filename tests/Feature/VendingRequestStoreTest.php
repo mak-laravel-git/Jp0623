@@ -69,6 +69,22 @@ test('a guest can submit a vending request', function () {
         ->and($request->terms_accepted)->toBeTrue();
 });
 
+test('sms consent is optional and defaults to false on a vending request', function () {
+    $this->from('/')
+        ->post(route('vending-requests.store'), validVendingRequestPayload())
+        ->assertSessionHasNoErrors();
+
+    expect(VendingRequest::query()->sole()->sms_consent)->toBeFalse();
+});
+
+test('a vending request stores sms consent when it is given', function () {
+    $this->from('/')
+        ->post(route('vending-requests.store'), validVendingRequestPayload(['sms_consent' => true]))
+        ->assertSessionHasNoErrors();
+
+    expect(VendingRequest::query()->sole()->sms_consent)->toBeTrue();
+});
+
 test('vending request validation requires core fields and location', function () {
     $this->from('/')
         ->post(route('vending-requests.store'), [

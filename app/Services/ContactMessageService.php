@@ -16,6 +16,7 @@ class ContactMessageService
             ...$data,
             'status' => ContactMessage::STATUS_NEW,
             'terms_accepted' => (bool) ($data['terms_accepted'] ?? false),
+            'sms_consent' => (bool) ($data['sms_consent'] ?? false),
         ]);
     }
 

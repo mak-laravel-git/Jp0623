@@ -39,6 +39,33 @@ test('a guest can submit a contact message', function () {
         ->and($message->status)->toBe(ContactMessage::STATUS_NEW);
 });
 
+test('sms consent is optional and defaults to false on a contact message', function () {
+    $this->from(route('contact'))
+        ->post(route('contact.store'), validContactMessagePayload())
+        ->assertSessionHasNoErrors();
+
+    expect(ContactMessage::query()->sole()->sms_consent)->toBeFalse();
+});
+
+test('a contact message stores sms consent when it is given', function () {
+    $this->from(route('contact'))
+        ->post(route('contact.store'), validContactMessagePayload(['sms_consent' => true]))
+        ->assertSessionHasNoErrors();
+
+    expect(ContactMessage::query()->sole()->sms_consent)->toBeTrue();
+});
+
+test('a contact message with sms consent requires a phone number', function () {
+    $this->from(route('contact'))
+        ->post(route('contact.store'), validContactMessagePayload([
+            'phone' => '',
+            'sms_consent' => true,
+        ]))
+        ->assertSessionHasErrors(['phone']);
+
+    expect(ContactMessage::query()->count())->toBe(0);
+});
+
 test('contact message validation requires core fields', function () {
     $this->from(route('contact'))
         ->post(route('contact.store'), [

@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
  * @property string $topic
  * @property string $message
  * @property bool $terms_accepted
+ * @property bool $sms_consent
  * @property string $status
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -47,6 +48,7 @@ class ContactMessage extends Model
         'topic',
         'message',
         'terms_accepted',
+        'sms_consent',
         'status',
     ];
 
@@ -57,6 +59,7 @@ class ContactMessage extends Model
     {
         return [
             'terms_accepted' => 'boolean',
+            'sms_consent' => 'boolean',
         ];
     }
 }

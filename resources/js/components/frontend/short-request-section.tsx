@@ -2,6 +2,7 @@ import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { BrandButton } from '@/components/frontend/brand-button';
+import { SmsConsentCheckbox } from '@/components/frontend/sms-consent-checkbox';
 import { Band } from '@/components/frontend/wrap';
 import {
     LocationAutocomplete
@@ -32,6 +33,7 @@ type ShortRequestFields = {
     email: string;
     notes: string;
     terms_accepted: boolean;
+    sms_consent: boolean;
 };
 
 function sanitizePhone(value: string): string {
@@ -64,6 +66,7 @@ const emptyFields: ShortRequestFields = {
     email: '',
     notes: '',
     terms_accepted: false,
+    sms_consent: false,
 };
 
 export function ShortRequestSection({
@@ -324,6 +327,12 @@ export function ShortRequestSection({
                                 and to be contacted about my request.
                             </label>
                             <FieldError message={errors.terms_accepted} />
+                            <SmsConsentCheckbox
+                                checked={values.sms_consent}
+                                onChange={(checked) =>
+                                    setField('sms_consent', checked)
+                                }
+                            />
                             <div className="col-span-full">
                                 <BrandButton
                                     as="button"

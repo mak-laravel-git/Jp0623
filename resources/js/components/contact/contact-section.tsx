@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { BrandButton } from '@/components/frontend/brand-button';
 import { Reveal } from '@/components/frontend/reveal';
+import { SmsConsentCheckbox } from '@/components/frontend/sms-consent-checkbox';
 import { Band } from '@/components/frontend/wrap';
 import { store as storeContactMessage } from '@/routes/contact';
 import type { ContactFormData, ContactPanelData } from '@/types/frontend';
@@ -31,6 +32,7 @@ export function ContactSection({
         topic: defaultTopic,
         message: '',
         terms_accepted: false,
+        sms_consent: false,
     });
 
     const fieldClass =
@@ -242,6 +244,12 @@ export function ContactSection({
                                     I agree to the Location Terms and Privacy
                                     Policy and to be contacted about my request.
                                 </label>
+                                <SmsConsentCheckbox
+                                    checked={form.data.sms_consent}
+                                    onChange={(checked) =>
+                                        form.setData('sms_consent', checked)
+                                    }
+                                />
                                 <div className="col-span-full">
                                     <BrandButton
                                         as="button"
