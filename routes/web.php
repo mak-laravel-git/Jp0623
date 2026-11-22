@@ -49,6 +49,7 @@ use App\Http\Controllers\Frontend\OperatorsController;
 use App\Http\Controllers\Frontend\ProductsController;
 use App\Http\Controllers\Frontend\ResourcesController;
 use App\Http\Controllers\Frontend\SchoolsController;
+use App\Http\Controllers\Frontend\SeoController;
 use App\Http\Controllers\Frontend\VendingRequestController;
 use App\Http\Controllers\Operator\AccountController;
 use App\Http\Controllers\Operator\BillingController;
@@ -64,6 +65,8 @@ use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
+Route::get('/llms.txt', [SeoController::class, 'llms'])->name('llms');
 Route::post('/vending-requests', [VendingRequestController::class, 'store'])
     ->middleware('throttle:10,1')
     ->name('vending-requests.store');
