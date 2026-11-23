@@ -29,6 +29,7 @@ import {
     Inbox,
     Mail,
     History,
+    KeyRound,
     Undo2,
     Wallet,
 } from 'lucide-react';
@@ -78,6 +79,7 @@ import adminContactMessages from '@/routes/admin/contact-messages';
 import adminOperatorSms from '@/routes/admin/operator-sms';
 import adminMembershipPriceHistory from '@/routes/admin/membership-price-history';
 import adminMembershipSettings from '@/routes/admin/membership-settings';
+import adminPaymentSettings from '@/routes/admin/payment-settings';
 import adminLegalPages from '@/routes/admin/legal-pages';
 import adminPayments from '@/routes/admin/payments';
 import adminVendingRequests from '@/routes/admin/vending-requests';
@@ -388,6 +390,7 @@ export function AppSidebar() {
                 permissions: [
                     PERMISSIONS.PAYMENTS.INDEX,
                     PERMISSIONS.MEMBERSHIP_SETTINGS.EDIT,
+                    PERMISSIONS.PAYMENT_SETTINGS.EDIT,
                 ],
                 items: [
                     {
@@ -395,6 +398,12 @@ export function AppSidebar() {
                         href: adminPayments.index(),
                         icon: Receipt,
                         permissions: [PERMISSIONS.PAYMENTS.INDEX],
+                    },
+                    {
+                        title: 'Payment settings',
+                        href: adminPaymentSettings.edit(),
+                        icon: KeyRound,
+                        permissions: [PERMISSIONS.PAYMENT_SETTINGS.EDIT],
                     },
                     {
                         title: 'Membership settings',

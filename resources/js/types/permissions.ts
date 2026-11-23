@@ -78,6 +78,9 @@ export const PERMISSIONS = {
     MEMBERSHIP_SETTINGS: {
         EDIT: 'membership-settings.edit',
     },
+    PAYMENT_SETTINGS: {
+        EDIT: 'payment-settings.edit',
+    },
     VENDING_REQUESTS: {
         INDEX: 'vending-requests.index',
         VIEW: 'vending-requests.view',

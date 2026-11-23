@@ -130,6 +130,21 @@ class SquareClient
     }
 
     /**
+     * The configured Square location (a read-only call used to test the credentials).
+     *
+     * @return array<string, mixed>
+     *
+     * @throws SquareNotConfiguredException
+     * @throws SquarePaymentException
+     */
+    public function retrieveLocation(): array
+    {
+        $this->assertConfigured();
+
+        return $this->send(fn (PendingRequest $request): Response => $request->get('/v2/locations/'.urlencode($this->locationId())))['location'] ?? [];
+    }
+
+    /**
      * List payments created in a time window for the configured location.
      *
      * @return list<array<string, mixed>>

@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\MembershipSettingController;
 use App\Http\Controllers\Admin\OfficeCoffeeFaqController;
 use App\Http\Controllers\Admin\OperatorSmsController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
+use App\Http\Controllers\Admin\PaymentSettingController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReviewController;
@@ -354,6 +355,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::controller(AdminPaymentController::class)->group(function () {
             Route::get('payments', 'index')->name('payments.index')
                 ->middleware('permission:'.PermissionEnum::PAYMENTS_INDEX->value);
+        });
+
+        // Square credentials (environment, ids, keys) saved in the dashboard instead of .env.
+        Route::controller(PaymentSettingController::class)->group(function () {
+            Route::get('payment-settings', 'edit')->name('payment-settings.edit')
+                ->middleware('permission:'.PermissionEnum::PAYMENT_SETTINGS_EDIT->value);
+            Route::put('payment-settings', 'update')->name('payment-settings.update')
+                ->middleware('permission:'.PermissionEnum::PAYMENT_SETTINGS_EDIT->value);
+            Route::post('payment-settings/test', 'test')->name('payment-settings.test')
+                ->middleware(['permission:'.PermissionEnum::PAYMENT_SETTINGS_EDIT->value, 'throttle:10,1']);
         });
 
         Route::controller(MembershipSettingController::class)->group(function () {
