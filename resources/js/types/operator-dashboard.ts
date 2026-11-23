@@ -98,6 +98,8 @@ export interface OperatorDashboardProps {
 }
 
 export type ReturnRequestRefund = {
+    details: { label: string; value: string }[];
+    receipt_url: string;
     type_label: string;
     total_amount: number;
     credit_amount: number;
@@ -124,5 +126,7 @@ export type ReturnRequest = {
     admin_note: string | null;
     resolved_at: string | null;
     created_at: string;
+    payment_details: { label: string; value: string }[];
+    receipt_url: string;
     refund: ReturnRequestRefund | null;
 };

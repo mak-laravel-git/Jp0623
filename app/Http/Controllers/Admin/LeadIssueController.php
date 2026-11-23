@@ -14,6 +14,7 @@ use App\Models\LeadIssueReport;
 use App\Services\LeadIssueReportService;
 use App\Services\LeadIssueSettingsService;
 use App\Services\LeadRefundService;
+use App\Services\ReceiptService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -25,6 +26,7 @@ class LeadIssueController extends Controller
         private LeadIssueReportService $reports,
         private LeadIssueSettingsService $settings,
         private LeadRefundService $refunds,
+        private ReceiptService $receipts,
     ) {}
 
     public function index(Request $request): Response
@@ -98,9 +100,10 @@ class LeadIssueController extends Controller
                 'lead_city' => $leadIssue->lead_city,
                 'price' => $leadIssue->price,
                 'purchased_at' => $leadIssue->purchased_at?->toIso8601String(),
-                'receipt_url' => $purchase->square_receipt_url,
+                'receipt_url' => route('receipts.lead', $purchase),
                 'payment_status' => $purchase->status,
                 'payment' => $this->refunds->preview($leadIssue),
+                'payment_details' => $this->receipts->purchaseDetails($purchase),
                 'refund' => $leadIssue->refund === null ? null : [
                     'id' => $leadIssue->refund->id,
                     'type' => $leadIssue->refund->type->value,
@@ -114,6 +117,8 @@ class LeadIssueController extends Controller
                     'square_refund_id' => $leadIssue->refund->square_refund_id,
                     'lead_action_label' => $leadIssue->refund->lead_action->label(),
                     'refunded_by' => $leadIssue->refund->refundedBy?->name,
+                    'details' => $this->receipts->refundDetails($leadIssue->refund),
+                    'receipt_url' => route('receipts.refund', $leadIssue->refund),
                     'created_at' => $leadIssue->refund->created_at->toIso8601String(),
                 ],
                 'operator' => [

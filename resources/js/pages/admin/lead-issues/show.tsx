@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { LeadIssueStatusBadge } from '@/components/admin/lead-issue-status-badge';
 import InputError from '@/components/input-error';
+import { PaymentDetailRows } from '@/components/payment-detail-rows';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -152,6 +153,10 @@ export default function ShowLeadIssue({
                     </Section>
                 </div>
 
+                <Section title="Payment details">
+                    <PaymentDetailRows rows={report.payment_details} />
+                </Section>
+
                 <section className="rounded-xl border bg-card p-5 shadow-sm">
                     <h2 className="mb-1 text-sm font-semibold tracking-wide text-muted-foreground uppercase">
                         Reason written by the operator
@@ -184,31 +189,26 @@ export default function ShowLeadIssue({
 
                 {refund ? (
                     <Section title="Refund">
-                        <Detail label="Type" value={refund.type_label} />
                         <Detail
                             label="Total refunded"
                             value={`$${refund.total_amount}`}
                         />
-                        <Detail
-                            label="Back as Credits"
-                            value={`${refund.credit_amount} Credits`}
-                        />
-                        <Detail
-                            label="Back to card"
-                            value={`$${refund.card_amount}`}
-                        />
-                        <Detail label="Status" value={refund.status_label} />
+                        <PaymentDetailRows rows={refund.details} />
                         <Detail label="Lead" value={refund.lead_action_label} />
                         <Detail
                             label="Refunded by"
                             value={`${refund.refunded_by ?? '—'} · ${formatDateTime(refund.created_at)}`}
                         />
-                        {refund.square_refund_id ? (
-                            <Detail
-                                label="Square refund"
-                                value={refund.square_refund_id}
-                            />
-                        ) : null}
+                        <div className="text-sm">
+                            <a
+                                href={refund.receipt_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline underline-offset-4"
+                            >
+                                View refund receipt
+                            </a>
+                        </div>
                         {refund.failure_message ? (
                             <p className="text-sm text-destructive">
                                 {refund.failure_message}
@@ -318,7 +318,10 @@ export default function ShowLeadIssue({
                         <DialogDescription>
                             The full amount is refunded. This lead was paid with{' '}
                             {payment.credits} Credits and ${payment.card} by
-                            card.
+                            card
+                            {payment.card_label
+                                ? ` (${payment.card_label}). A dollar refund goes back to this card.`
+                                : '.'}
                         </DialogDescription>
                     </DialogHeader>
 

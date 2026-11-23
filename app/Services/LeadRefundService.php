@@ -33,6 +33,7 @@ class LeadRefundService
     public function __construct(
         private SquareClient $square,
         private CreditService $credits,
+        private ReceiptService $receipts,
     ) {}
 
     /**
@@ -53,6 +54,7 @@ class LeadRefundService
             'total' => (int) $purchase->price,
             'credits' => $credits,
             'card' => $card,
+            'card_label' => $purchase->card_last4 ? trim(($purchase->card_brand ?: 'Card').' ending '.$purchase->card_last4) : null,
             'can_refund' => $canRefund,
             'can_refund_dollars' => $canRefund && $card > 0 && $purchase->square_payment_id !== null,
         ];
@@ -105,7 +107,11 @@ class LeadRefundService
             'admin_note' => $report->admin_note,
             'resolved_at' => $report->resolved_at?->toIso8601String(),
             'created_at' => $report->created_at->toIso8601String(),
+            'payment_details' => $this->receipts->purchaseDetails($purchase),
+            'receipt_url' => route('receipts.lead', $purchase),
             'refund' => $refund === null ? null : [
+                'details' => $this->receipts->refundDetails($refund),
+                'receipt_url' => route('receipts.refund', $refund),
                 'type_label' => $refund->type->label(),
                 'total_amount' => $refund->total_amount,
                 'credit_amount' => $refund->credit_amount,
