@@ -20,7 +20,7 @@ class UpdateLeadIssueRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', 'string', Rule::in([LeadIssueStatus::APPROVED->value, LeadIssueStatus::REJECTED->value])],
+            'status' => ['required', 'string', Rule::in([LeadIssueStatus::REJECTED->value])],
             'admin_note' => ['required', 'string', 'min:3', 'max:2000'],
         ];
     }

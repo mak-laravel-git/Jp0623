@@ -4,12 +4,16 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\LeadIssueCategory;
 use App\Enums\LeadIssueStatus;
+use App\Enums\LeadRefundAction;
+use App\Enums\LeadRefundType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\LeadIssue\RefundLeadIssueRequest;
 use App\Http\Requests\Admin\LeadIssue\UpdateLeadIssueRequest;
 use App\Http\Requests\Admin\LeadIssue\UpdateLeadIssueSettingsRequest;
 use App\Models\LeadIssueReport;
 use App\Services\LeadIssueReportService;
 use App\Services\LeadIssueSettingsService;
+use App\Services\LeadRefundService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -20,6 +24,7 @@ class LeadIssueController extends Controller
     public function __construct(
         private LeadIssueReportService $reports,
         private LeadIssueSettingsService $settings,
+        private LeadRefundService $refunds,
     ) {}
 
     public function index(Request $request): Response
@@ -69,7 +74,7 @@ class LeadIssueController extends Controller
 
     public function show(LeadIssueReport $leadIssue): Response
     {
-        $leadIssue->load(['user.operatorProfile', 'resolver:id,name', 'leadPurchase']);
+        $leadIssue->load(['user.operatorProfile', 'resolver:id,name', 'leadPurchase', 'refund.refundedBy:id,name']);
 
         $operator = $leadIssue->user;
         $purchase = $leadIssue->leadPurchase;
@@ -95,6 +100,22 @@ class LeadIssueController extends Controller
                 'purchased_at' => $leadIssue->purchased_at?->toIso8601String(),
                 'receipt_url' => $purchase->square_receipt_url,
                 'payment_status' => $purchase->status,
+                'payment' => $this->refunds->preview($leadIssue),
+                'refund' => $leadIssue->refund === null ? null : [
+                    'id' => $leadIssue->refund->id,
+                    'type' => $leadIssue->refund->type->value,
+                    'type_label' => $leadIssue->refund->type->label(),
+                    'total_amount' => $leadIssue->refund->total_amount,
+                    'credit_amount' => $leadIssue->refund->credit_amount,
+                    'card_amount' => $leadIssue->refund->card_amount,
+                    'status' => $leadIssue->refund->status->value,
+                    'status_label' => $leadIssue->refund->status->label(),
+                    'failure_message' => $leadIssue->refund->failure_message,
+                    'square_refund_id' => $leadIssue->refund->square_refund_id,
+                    'lead_action_label' => $leadIssue->refund->lead_action->label(),
+                    'refunded_by' => $leadIssue->refund->refundedBy?->name,
+                    'created_at' => $leadIssue->refund->created_at->toIso8601String(),
+                ],
                 'operator' => [
                     'name' => $operator->name,
                     'email' => $operator->email,
@@ -124,6 +145,24 @@ class LeadIssueController extends Controller
         return redirect()->back();
     }
 
+    /**
+     * Refund the returned lead in full: to the card (dollars) or as Credits.
+     */
+    public function refund(RefundLeadIssueRequest $request, LeadIssueReport $leadIssue): RedirectResponse
+    {
+        $this->refunds->refund(
+            $leadIssue,
+            LeadRefundType::from($request->validated('type')),
+            LeadRefundAction::from($request->validated('lead_action')),
+            $request->validated('admin_note'),
+            $request->user(),
+        );
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Refund issued.']);
+
+        return redirect()->back();
+    }
+
     public function update(UpdateLeadIssueRequest $request, LeadIssueReport $leadIssue): RedirectResponse
     {
         $status = LeadIssueStatus::from($request->validated('status'));
@@ -132,7 +171,7 @@ class LeadIssueController extends Controller
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => $status === LeadIssueStatus::APPROVED ? 'Return approved.' : 'Return rejected.',
+            'message' => 'Return rejected.',
         ]);
 
         return redirect()->back();

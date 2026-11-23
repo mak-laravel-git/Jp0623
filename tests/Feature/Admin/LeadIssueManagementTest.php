@@ -93,19 +93,17 @@ test('the admin can open the details of a request', function () {
         );
 });
 
-test('the admin can approve a request with a note and nothing else changes', function () {
+test('the admin can reject a request and nothing else changes', function () {
     $purchase = LeadPurchase::factory()->create();
     $report = LeadIssueReport::factory()->create(['lead_purchase_id' => $purchase->id, 'user_id' => $purchase->user_id]);
 
     $this->actingAs($this->admin)
-        ->put(route('admin.lead-issues.update', $report), ['status' => 'approved', 'admin_note' => 'Confirmed with the location.'])
-        ->assertSessionHasNoErrors()
-        ->assertRedirect();
+        ->put(route('admin.lead-issues.update', $report), ['status' => 'rejected', 'admin_note' => 'The details were correct.'])
+        ->assertSessionHasNoErrors();
 
     $report->refresh();
 
-    expect($report->status)->toBe(LeadIssueStatus::APPROVED)
-        ->and($report->admin_note)->toBe('Confirmed with the location.')
+    expect($report->status)->toBe(LeadIssueStatus::REJECTED)
         ->and($report->resolved_by)->toBe($this->admin->id)
         ->and($report->resolved_at)->not->toBeNull()
         ->and($purchase->refresh()->status)->toBe(LeadPurchase::STATUS_PAID)
@@ -115,26 +113,20 @@ test('the admin can approve a request with a note and nothing else changes', fun
         ->get(route('admin.lead-issues.show', $report))
         ->assertInertia(fn (Assert $page) => $page
             ->where('report.resolved_by', 'Admin Amy')
-            ->where('report.admin_note', 'Confirmed with the location.')
+            ->where('report.admin_note', 'The details were correct.')
         );
 });
 
-test('the admin can reject a request', function () {
+test('a decision needs a note and cannot approve without a refund or put a request back to open', function () {
     $report = LeadIssueReport::factory()->create();
 
     $this->actingAs($this->admin)
-        ->put(route('admin.lead-issues.update', $report), ['status' => 'rejected', 'admin_note' => 'The details were correct.'])
-        ->assertSessionHasNoErrors();
-
-    expect($report->refresh()->status)->toBe(LeadIssueStatus::REJECTED);
-});
-
-test('a decision needs a note and cannot put a request back to open', function () {
-    $report = LeadIssueReport::factory()->create();
-
-    $this->actingAs($this->admin)
-        ->put(route('admin.lead-issues.update', $report), ['status' => 'approved', 'admin_note' => ''])
+        ->put(route('admin.lead-issues.update', $report), ['status' => 'rejected', 'admin_note' => ''])
         ->assertSessionHasErrors('admin_note');
+
+    $this->actingAs($this->admin)
+        ->put(route('admin.lead-issues.update', $report), ['status' => 'approved', 'admin_note' => 'No refund'])
+        ->assertSessionHasErrors('status');
 
     $this->actingAs($this->admin)
         ->put(route('admin.lead-issues.update', $report), ['status' => 'open', 'admin_note' => 'Back to open'])
@@ -148,13 +140,13 @@ test('the operator sees the decision on the tickets page', function () {
     $report = LeadIssueReport::factory()->create(['lead_purchase_id' => $purchase->id, 'user_id' => $purchase->user_id]);
 
     $this->actingAs($this->admin)
-        ->put(route('admin.lead-issues.update', $report), ['status' => 'approved', 'admin_note' => 'Return approved, thanks.']);
+        ->put(route('admin.lead-issues.update', $report), ['status' => 'rejected', 'admin_note' => 'Details were correct.']);
 
     $this->actingAs($purchase->user)
         ->get(route('leads.tickets'))
         ->assertInertia(fn (Assert $page) => $page
-            ->where('tickets.0.status', 'Return approved')
-            ->where('tickets.0.outcome', 'Return approved, thanks.')
+            ->where('tickets.0.status', 'Return rejected')
+            ->where('tickets.0.outcome', 'Details were correct.')
         );
 });
 

@@ -167,6 +167,7 @@ enum PermissionEnum: string
     case LEAD_ISSUES_INDEX = 'lead-issues.index';
     case LEAD_ISSUES_VIEW = 'lead-issues.view';
     case LEAD_ISSUES_EDIT = 'lead-issues.edit';
+    case LEAD_ISSUES_REFUND = 'lead-issues.refund';
 
     // OPERATOR SMS
     case OPERATOR_SMS_INDEX = 'operator-sms.index';
@@ -326,7 +327,8 @@ enum PermissionEnum: string
 
             self::LEAD_ISSUES_INDEX,
             self::LEAD_ISSUES_VIEW,
-            self::LEAD_ISSUES_EDIT => 'Lead Issues',
+            self::LEAD_ISSUES_EDIT,
+            self::LEAD_ISSUES_REFUND => 'Lead Issues',
 
             self::OPERATOR_SMS_INDEX,
             self::OPERATOR_SMS_SEND => 'Operator SMS',

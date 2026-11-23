@@ -12,7 +12,7 @@ enum LeadIssueStatus: string
     {
         return match ($this) {
             self::OPEN => 'Open',
-            self::APPROVED => 'Return approved',
+            self::APPROVED => 'Refunded',
             self::REJECTED => 'Return rejected',
         };
     }

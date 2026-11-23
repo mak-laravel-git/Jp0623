@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property string $leadable_type
  * @property int $leadable_id
  * @property int $price Price in whole dollars (kept for display).
+ * @property int $credits_applied Dollars of the price paid with Credits; `amount_cents` is the card part.
  * @property string $status
  * @property string|null $lead_lock Non-null while pending/paid; unique per lead.
  * @property int $amount_cents
@@ -40,6 +41,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
     'leadable_type',
     'leadable_id',
     'price',
+    'credits_applied',
     'status',
     'lead_lock',
     'amount_cents',
@@ -81,6 +83,8 @@ class LeadPurchase extends Model
     public const PROVIDER_SQUARE = 'square';
 
     public const PROVIDER_LEGACY = 'legacy';
+
+    public const PROVIDER_CREDITS = 'credits';
 
     /**
      * The value stored in `lead_lock` while an operator holds a lead.
@@ -153,6 +157,7 @@ class LeadPurchase extends Model
     {
         return [
             'price' => 'integer',
+            'credits_applied' => 'integer',
             'amount_cents' => 'integer',
             'square_payload' => 'array',
             'purchased_at' => 'datetime',

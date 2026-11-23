@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\CoffeeServiceRequest;
 use App\Models\LeadPurchase;
+use App\Models\LeadRefund;
 use App\Models\MembershipPayment;
 use App\Models\User;
 use App\Models\VendingRequest;
@@ -36,7 +37,7 @@ class PaymentHistoryService
     public function invoicesFor(User $user): array
     {
         $leads = $user->leadPurchases()
-            ->paid()
+            ->whereIn('status', [LeadPurchase::STATUS_PAID, LeadPurchase::STATUS_REFUNDED])
             ->with('leadable')
             ->get()
             ->filter(fn (LeadPurchase $purchase): bool => $purchase->leadable !== null)
@@ -47,8 +48,15 @@ class PaymentHistoryService
             ->get()
             ->map(fn (MembershipPayment $payment): array => $this->mapInvoiceFromMembership($payment));
 
+        $refunds = LeadRefund::query()
+            ->where('user_id', $user->id)
+            ->with('report')
+            ->get()
+            ->map(fn (LeadRefund $refund): array => $this->mapInvoiceFromRefund($refund));
+
         return $leads
             ->concat($memberships)
+            ->concat($refunds)
             ->sortByDesc(fn (array $row): string => $row['sort_at'])
             ->values()
             ->map(function (array $row): array {
@@ -226,7 +234,9 @@ class PaymentHistoryService
                 : trim($lead->city.' '.$lead->state);
         }
 
-        $amountCents = $purchase->amount_cents ?: ((int) $purchase->price * 100);
+        $amountCents = $purchase->credits_applied > 0
+            ? $purchase->amount_cents
+            : ($purchase->amount_cents ?: ((int) $purchase->price * 100));
         $paidAt = $purchase->paid_at ?? $purchase->purchased_at ?? $purchase->created_at;
 
         return [
@@ -234,14 +244,45 @@ class PaymentHistoryService
             'source' => 'lead',
             'location' => filled($location) ? $location : null,
             'date' => $paidAt->format('M j, Y'),
-            'status' => 'Paid',
+            'status' => $purchase->status === LeadPurchase::STATUS_REFUNDED ? 'Refunded' : 'Paid',
             'description' => 'Location lead ('.$source.')',
             'amount' => round($amountCents / 100, 2),
+            'credits_used' => (int) $purchase->credits_applied,
             'qty' => 1,
             'receipt_url' => $purchase->square_receipt_url,
             'card_brand' => $purchase->card_brand,
             'card_last4' => $purchase->card_last4,
             'sort_at' => $paidAt->toIso8601String(),
+        ];
+    }
+
+    /**
+     * A refund line: the card part is a negative amount, the Credits part is shown as Credits given back.
+     *
+     * @return array<string, mixed>
+     */
+    private function mapInvoiceFromRefund(LeadRefund $refund): array
+    {
+        $how = collect([
+            $refund->card_amount > 0 ? '$'.$refund->card_amount.' to your card' : null,
+            $refund->credit_amount > 0 ? $refund->credit_amount.' Credits' : null,
+        ])->filter()->implode(' + ');
+
+        return [
+            'id' => 'RF-'.$refund->id,
+            'source' => 'refund',
+            'location' => null,
+            'date' => $refund->created_at->format('M j, Y'),
+            'status' => $refund->status->label(),
+            'description' => 'Refund for lead '.$refund->report->lead_reference.' ('.$how.')',
+            'amount' => round(-$refund->card_amount, 2),
+            'credits_used' => 0,
+            'credits_refunded' => $refund->credit_amount,
+            'qty' => 1,
+            'receipt_url' => null,
+            'card_brand' => null,
+            'card_last4' => null,
+            'sort_at' => $refund->created_at->toIso8601String(),
         ];
     }
 

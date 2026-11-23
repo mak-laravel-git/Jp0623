@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\CreditTransactionType;
 use App\Exceptions\Payments\LeadUnavailableException;
 use App\Exceptions\Payments\PaymentFailedException;
 use App\Exceptions\Payments\SquareNotConfiguredException;
@@ -34,6 +35,7 @@ class LeadPurchaseService
     public function __construct(
         private SquareClient $square,
         private LeadService $leads,
+        private CreditService $credits,
     ) {}
 
     /**
@@ -46,10 +48,8 @@ class LeadPurchaseService
      * @throws LeadUnavailableException
      * @throws PaymentFailedException
      */
-    public function checkout(User $user, string $source, int $leadId, string $sourceToken): LeadPurchase
+    public function checkout(User $user, string $source, int $leadId, ?string $sourceToken, bool $useCredits = false): LeadPurchase
     {
-        $this->square->assertConfigured();
-
         $own = $user->leadPurchases()
             ->where('leadable_type', $source)
             ->where('leadable_id', $leadId)
@@ -60,7 +60,17 @@ class LeadPurchaseService
             return $own;
         }
 
-        $purchase = $this->reserve($user, $source, $leadId);
+        $purchase = $this->reserve($user, $source, $leadId, $useCredits);
+
+        if ($purchase->amount_cents === 0) {
+            return $this->completeWithCredits($purchase);
+        }
+
+        if ($sourceToken === null || $sourceToken === '') {
+            $this->markFailed($purchase, 'NO_CARD', 'VALIDATION');
+
+            throw PaymentFailedException::fromCode('NO_CARD');
+        }
 
         try {
             $payment = $this->square->createPayment($this->paymentPayload($purchase, $user, $source, $sourceToken));
@@ -146,12 +156,12 @@ class LeadPurchaseService
     /**
      * @throws LeadUnavailableException
      */
-    private function reserve(User $user, string $source, int $leadId): LeadPurchase
+    private function reserve(User $user, string $source, int $leadId, bool $useCredits): LeadPurchase
     {
         $leadKey = LeadPurchase::leadKey($source, $leadId);
 
         try {
-            return DB::transaction(function () use ($user, $source, $leadId, $leadKey): LeadPurchase {
+            return DB::transaction(function () use ($user, $source, $leadId, $leadKey, $useCredits): LeadPurchase {
                 $lead = $this->leads->modelClass($source)::query()
                     ->whereIn('status', LeadService::LISTED_STATUSES)
                     ->lockForUpdate()
@@ -169,17 +179,34 @@ class LeadPurchaseService
                     throw new LeadUnavailableException;
                 }
 
-                return $user->leadPurchases()->create([
+                // Lock the member row so the Credits read here are the ones spent below.
+                User::query()->lockForUpdate()->findOrFail($user->id);
+
+                $credits = $useCredits ? $this->credits->usableFor($user, $price) : 0;
+                $cardCents = ($price - $credits) * 100;
+
+                if ($cardCents > 0) {
+                    $this->square->assertConfigured();
+                }
+
+                $purchase = $user->leadPurchases()->create([
                     'leadable_type' => $source,
                     'leadable_id' => $leadId,
                     'price' => $price,
+                    'credits_applied' => $credits,
                     'status' => LeadPurchase::STATUS_PENDING,
                     'lead_lock' => $leadKey,
-                    'amount_cents' => $price * 100,
+                    'amount_cents' => $cardCents,
                     'currency' => $this->square->currency(),
-                    'payment_provider' => LeadPurchase::PROVIDER_SQUARE,
+                    'payment_provider' => $cardCents === 0 ? LeadPurchase::PROVIDER_CREDITS : LeadPurchase::PROVIDER_SQUARE,
                     'idempotency_key' => (string) Str::uuid(),
                 ]);
+
+                if ($credits > 0) {
+                    $this->credits->spend($user, $credits, $purchase, 'Used for lead '.LeadService::publicIdFor($source, $leadId));
+                }
+
+                return $purchase;
             });
         } catch (UniqueConstraintViolationException) {
             throw new LeadUnavailableException;
@@ -283,6 +310,30 @@ class LeadPurchaseService
     }
 
     /**
+     * The Credits covered the whole price: no card charge, the purchase is paid straight away.
+     */
+    private function completeWithCredits(LeadPurchase $purchase): LeadPurchase
+    {
+        return DB::transaction(function () use ($purchase): LeadPurchase {
+            $locked = LeadPurchase::query()->lockForUpdate()->findOrFail($purchase->id);
+
+            if (! $locked->isPending()) {
+                return $locked;
+            }
+
+            $locked->forceFill([
+                'status' => LeadPurchase::STATUS_PAID,
+                'paid_at' => now(),
+                'purchased_at' => now(),
+            ])->save();
+
+            $this->queuePurchaseEmails($locked);
+
+            return $locked;
+        });
+    }
+
+    /**
      * Email the operator the lead contact's details and the lead contact the
      * operator's details. Runs once, on the pending → paid transition.
      */
@@ -317,6 +368,16 @@ class LeadPurchaseService
             'failure_category' => $category !== null ? Str::limit($category, 100, '') : null,
             'failure_message' => $detail !== null ? Str::limit($detail, 500, '') : null,
         ])->save();
+
+        if ($locked->credits_applied > 0) {
+            $this->credits->grant(
+                $locked->user,
+                $locked->credits_applied,
+                CreditTransactionType::PURCHASE_RESTORE,
+                $locked,
+                note: 'Purchase did not go through',
+            );
+        }
 
         return $locked;
     }

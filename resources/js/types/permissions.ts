@@ -175,6 +175,7 @@ export const PERMISSIONS = {
         INDEX: 'lead-issues.index',
         VIEW: 'lead-issues.view',
         EDIT: 'lead-issues.edit',
+        REFUND: 'lead-issues.refund',
     },
     OPERATOR_SMS: {
         INDEX: 'operator-sms.index',

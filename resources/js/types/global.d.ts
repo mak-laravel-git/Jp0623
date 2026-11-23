@@ -15,6 +15,7 @@ declare module '@inertiajs/core' {
             auth: Auth;
             sidebarOpen: boolean;
             square: SquareConfig | null;
+            credits: number;
             [key: string]: unknown;
         };
     }

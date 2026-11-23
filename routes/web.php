@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\ContactMessageController as AdminContactMessageCo
 use App\Http\Controllers\Admin\HeroSectionController;
 use App\Http\Controllers\Admin\HomeFaqController;
 use App\Http\Controllers\Admin\LeadIssueController as AdminLeadIssueController;
+use App\Http\Controllers\Admin\LeadRefundController as AdminLeadRefundController;
 use App\Http\Controllers\Admin\LegalPageController;
 use App\Http\Controllers\Admin\LocationTypeController;
 use App\Http\Controllers\Admin\MachineCategoryController;
@@ -58,6 +59,7 @@ use App\Http\Controllers\Operator\AccountController;
 use App\Http\Controllers\Operator\BillingController;
 use App\Http\Controllers\Operator\LeadController;
 use App\Http\Controllers\Operator\LeadIssueController as OperatorLeadIssueController;
+use App\Http\Controllers\Operator\LeadRefundController as OperatorLeadRefundController;
 use App\Http\Controllers\Operator\MembershipAutoRenewController;
 use App\Http\Controllers\Operator\MembershipCheckoutController;
 use App\Http\Controllers\Operator\RouteController;
@@ -128,6 +130,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('leads/sold', [LeadController::class, 'sold'])->name('leads.sold');
     Route::get('leads/tickets', [LeadController::class, 'tickets'])->name('leads.tickets');
     Route::get('leads/faq', [LeadController::class, 'faq'])->name('leads.faq');
+    Route::get('leads/refunds', [OperatorLeadRefundController::class, 'index'])->name('leads.refunds');
+    Route::get('leads/refunds/{report}', [OperatorLeadRefundController::class, 'show'])->name('leads.refunds.show');
     Route::post('leads/{source}/{lead}/purchase', [LeadController::class, 'purchase'])
         ->whereIn('source', ['vending', 'coffee'])
         ->whereNumber('lead')
@@ -599,6 +603,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->middleware('permission:'.PermissionEnum::LEAD_ISSUES_VIEW->value);
             Route::put('lead-issues/{lead_issue}', 'update')->name('lead-issues.update')
                 ->middleware('permission:'.PermissionEnum::LEAD_ISSUES_EDIT->value);
+            Route::post('lead-issues/{lead_issue}/refund', 'refund')->name('lead-issues.refund')
+                ->middleware('permission:'.PermissionEnum::LEAD_ISSUES_REFUND->value);
+        });
+
+        // Refunds given for returned leads (dollars to the card or Credits).
+        Route::controller(AdminLeadRefundController::class)->group(function () {
+            Route::get('refunds', 'index')->name('refunds.index')
+                ->middleware('permission:'.PermissionEnum::LEAD_ISSUES_INDEX->value);
+            Route::post('refunds/{refund}/retry', 'retry')->name('refunds.retry')
+                ->middleware('permission:'.PermissionEnum::LEAD_ISSUES_REFUND->value);
         });
 
     });

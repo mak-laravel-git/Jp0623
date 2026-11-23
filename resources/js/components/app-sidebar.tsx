@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     BadgeCheck,
     BookOpen,
@@ -30,6 +30,7 @@ import {
     Mail,
     History,
     Undo2,
+    Wallet,
 } from 'lucide-react';
 import { useMemo } from 'react';
 import AppLogo from '@/components/app-logo';
@@ -68,6 +69,7 @@ import adminOfficeCoffeeFaqs from '@/routes/admin/office-coffee-faqs';
 import adminProducts from '@/routes/admin/products';
 import adminHeroSection from '@/routes/admin/hero-section';
 import adminLeadIssues from '@/routes/admin/lead-issues';
+import adminRefunds from '@/routes/admin/refunds';
 import adminRouteInquiries from '@/routes/admin/route-inquiries';
 import adminRouteListings from '@/routes/admin/route-listings';
 import adminUserManagement from '@/routes/admin/user-management';
@@ -85,6 +87,7 @@ import {
     faq as leadsFaq,
     index as leadsIndex,
     purchased as leadsPurchased,
+    refunds as leadsRefunds,
     sold as leadsSold,
     tickets as leadsTickets,
 } from '@/routes/leads';
@@ -109,6 +112,7 @@ const footerNavItems: NavItem[] = [
 export function AppSidebar() {
     const { hasAnyRole } = usePermission();
     const isAdmin = hasAnyRole(['admin', 'super-admin']);
+    const { credits } = usePage().props;
 
     const mainNav = useMemo((): NavNode[] => {
         const items: NavNode[] = [
@@ -163,6 +167,13 @@ export function AppSidebar() {
                     title: 'Established locations & routes for sale',
                     href: routesIndex(),
                     icon: Route,
+                    permissions: [PERMISSIONS.DASHBOARD.VIEW],
+                },
+                {
+                    title: 'Refunds & Credits',
+                    href: leadsRefunds(),
+                    icon: Wallet,
+                    badge: `${credits} Credits`,
                     permissions: [PERMISSIONS.DASHBOARD.VIEW],
                 },
                 {
@@ -286,6 +297,12 @@ export function AppSidebar() {
                 title: 'Lead issues',
                 href: adminLeadIssues.index(),
                 icon: Undo2,
+                permissions: [PERMISSIONS.LEAD_ISSUES.INDEX],
+            },
+            {
+                title: 'Refunds',
+                href: adminRefunds.index(),
+                icon: Wallet,
                 permissions: [PERMISSIONS.LEAD_ISSUES.INDEX],
             },
             {
@@ -467,7 +484,7 @@ export function AppSidebar() {
         );
 
         return items;
-    }, [isAdmin]);
+    }, [isAdmin, credits]);
 
     return (
         <Sidebar collapsible="icon" variant="inset">
