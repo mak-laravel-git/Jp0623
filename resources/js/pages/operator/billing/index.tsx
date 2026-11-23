@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/table';
 import { dashboard } from '@/routes';
 import { index as billingIndex } from '@/routes/billing';
+import { refunds as leadsRefunds } from '@/routes/leads';
 
 interface LastPaidCard {
     brand: string;
@@ -28,12 +29,14 @@ interface LastPaidCard {
 
 interface Invoice {
     id: string;
-    source?: 'lead' | 'membership';
+    source?: 'lead' | 'membership' | 'refund';
     location: string | null;
     date: string;
     status: string;
     description: string;
     amount: number;
+    credits_used?: number;
+    credits_refunded?: number;
     qty: number;
     receipt_url: string | null;
     card_brand: string | null;
@@ -41,18 +44,55 @@ interface Invoice {
 }
 
 function money(value: number): string {
-    return `$${value.toLocaleString('en-US', {
+    return `${value < 0 ? '-' : ''}$${Math.abs(value).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     })}`;
 }
 
+/**
+ * Extra lines about Credits for a row: Credits used to pay, or Credits given back by a refund.
+ */
+function creditsNote(row: Invoice): string | null {
+    if ((row.credits_used ?? 0) > 0) {
+        return `${row.credits_used} Credits used`;
+    }
+
+    if ((row.credits_refunded ?? 0) > 0) {
+        return `${row.credits_refunded} Credits back`;
+    }
+
+    return null;
+}
+
 function statusBadge(status: string) {
-    if (status === 'Paid') {
+    if (status === 'Paid' || status === 'Completed') {
         return (
             <Badge
                 variant="outline"
                 className="border-emerald-500/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200"
+            >
+                {status}
+            </Badge>
+        );
+    }
+
+    if (status === 'Refunded' || status === 'Processing') {
+        return (
+            <Badge
+                variant="outline"
+                className="border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200"
+            >
+                {status}
+            </Badge>
+        );
+    }
+
+    if (status === 'Failed') {
+        return (
+            <Badge
+                variant="outline"
+                className="border-destructive/40 bg-destructive/10 text-destructive"
             >
                 {status}
             </Badge>
@@ -74,6 +114,7 @@ export default function BillingIndex({
     invoices: Invoice[];
 }) {
     const [invoice, setInvoice] = useState<Invoice | null>(null);
+    const { credits } = usePage().props;
 
     return (
         <>
@@ -85,9 +126,22 @@ export default function BillingIndex({
                         Billing &amp; invoices
                     </h1>
                     <p className="mt-1 max-w-3xl text-muted-foreground">
-                        Lead purchases and membership charges. Membership cards
-                        stay on file for renewals; lead checkouts are one-time.
+                        Lead purchases, membership charges and refunds.
+                        Membership cards stay on file for renewals; lead
+                        checkouts are one-time.
                     </p>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card px-4 py-4 text-sm shadow-sm">
+                    <span>
+                        Your Credits: <strong>{credits}</strong> (1 Credit = $1)
+                    </span>
+                    <Link
+                        href={leadsRefunds().url}
+                        className="text-brass underline-offset-2 hover:underline"
+                    >
+                        Refunds &amp; Credits
+                    </Link>
                 </div>
 
                 {lastPaidCard ? (
@@ -145,6 +199,11 @@ export default function BillingIndex({
                                             </TableCell>
                                             <TableCell>
                                                 {row.description}
+                                                {creditsNote(row) ? (
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {creditsNote(row)}
+                                                    </p>
+                                                ) : null}
                                             </TableCell>
                                             <TableCell className="text-right tabular-nums">
                                                 {money(row.amount)}
@@ -212,6 +271,14 @@ export default function BillingIndex({
                                         {money(invoice.amount)}
                                     </dd>
                                 </div>
+                                {creditsNote(invoice) ? (
+                                    <div className="flex justify-between gap-4">
+                                        <dt className="text-muted-foreground">
+                                            Credits
+                                        </dt>
+                                        <dd>{creditsNote(invoice)}</dd>
+                                    </div>
+                                ) : null}
                                 {invoice.card_brand && invoice.card_last4 ? (
                                     <div className="flex justify-between gap-4">
                                         <dt className="text-muted-foreground">

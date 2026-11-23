@@ -131,6 +131,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('leads/tickets', [LeadController::class, 'tickets'])->name('leads.tickets');
     Route::get('leads/faq', [LeadController::class, 'faq'])->name('leads.faq');
     Route::get('leads/refunds', [OperatorLeadRefundController::class, 'index'])->name('leads.refunds');
+    Route::get('leads/refunds/{report}', [OperatorLeadRefundController::class, 'show'])->name('leads.refunds.show');
     Route::post('leads/{source}/{lead}/purchase', [LeadController::class, 'purchase'])
         ->whereIn('source', ['vending', 'coffee'])
         ->whereNumber('lead')

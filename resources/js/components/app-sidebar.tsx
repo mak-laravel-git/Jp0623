@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     BadgeCheck,
     BookOpen,
@@ -112,6 +112,7 @@ const footerNavItems: NavItem[] = [
 export function AppSidebar() {
     const { hasAnyRole } = usePermission();
     const isAdmin = hasAnyRole(['admin', 'super-admin']);
+    const { credits } = usePage().props;
 
     const mainNav = useMemo((): NavNode[] => {
         const items: NavNode[] = [
@@ -148,12 +149,6 @@ export function AppSidebar() {
                             icon: BadgeCheck,
                             permissions: [PERMISSIONS.DASHBOARD.VIEW],
                         },
-                        {
-                            title: 'Refunds & Credits',
-                            href: leadsRefunds(),
-                            icon: Wallet,
-                            permissions: [PERMISSIONS.DASHBOARD.VIEW],
-                        },
                         // {
                         //     title: 'Lead issues & tickets',
                         //     href: leadsTickets(),
@@ -172,6 +167,13 @@ export function AppSidebar() {
                     title: 'Established locations & routes for sale',
                     href: routesIndex(),
                     icon: Route,
+                    permissions: [PERMISSIONS.DASHBOARD.VIEW],
+                },
+                {
+                    title: 'Refunds & Credits',
+                    href: leadsRefunds(),
+                    icon: Wallet,
+                    badge: `${credits} Credits`,
                     permissions: [PERMISSIONS.DASHBOARD.VIEW],
                 },
                 {
@@ -482,7 +484,7 @@ export function AppSidebar() {
         );
 
         return items;
-    }, [isAdmin]);
+    }, [isAdmin, credits]);
 
     return (
         <Sidebar collapsible="icon" variant="inset">

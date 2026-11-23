@@ -1,5 +1,6 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
     Table,
     TableBody,
@@ -10,21 +11,8 @@ import {
 } from '@/components/ui/table';
 import { dashboard } from '@/routes';
 import { refunds as leadsRefunds } from '@/routes/leads';
-
-interface Refund {
-    id: number;
-    lead_reference: string;
-    lead_type: string | null;
-    lead_city: string | null;
-    total_amount: number;
-    credit_amount: number;
-    card_amount: number;
-    type_label: string;
-    status: 'pending' | 'completed' | 'failed';
-    status_label: string;
-    note: string | null;
-    refunded_at: string;
-}
+import { show as showRefund } from '@/routes/leads/refunds';
+import type { ReturnRequest } from '@/types/operator-dashboard';
 
 interface CreditRow {
     id: number;
@@ -38,25 +26,44 @@ interface CreditRow {
 const formatDate = (value: string) =>
     new Date(value).toLocaleDateString(undefined, { dateStyle: 'medium' });
 
-function refundDetail(refund: Refund): string {
-    const parts: string[] = [];
-
-    if (refund.credit_amount > 0) {
-        parts.push(`${refund.credit_amount} Credits`);
+function refundSummary(request: ReturnRequest): string {
+    if (!request.refund) {
+        return '—';
     }
 
-    if (refund.card_amount > 0) {
-        parts.push(`$${refund.card_amount} to your card`);
+    const parts: string[] = [];
+
+    if (request.refund.credit_amount > 0) {
+        parts.push(`${request.refund.credit_amount} Credits`);
+    }
+
+    if (request.refund.card_amount > 0) {
+        parts.push(`$${request.refund.card_amount} to card`);
     }
 
     return parts.join(' + ');
 }
 
+function statusBadge(request: ReturnRequest) {
+    const styles: Record<ReturnRequest['status'], string> = {
+        open: 'border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200',
+        approved:
+            'border-emerald-500/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200',
+        rejected: 'border-destructive/40 bg-destructive/10 text-destructive',
+    };
+
+    return (
+        <Badge variant="outline" className={styles[request.status]}>
+            {request.status_label}
+        </Badge>
+    );
+}
+
 export default function LeadRefunds({
-    refunds,
+    requests,
     creditHistory,
 }: {
-    refunds: Refund[];
+    requests: ReturnRequest[];
     creditHistory: CreditRow[];
 }) {
     const { credits } = usePage().props;
@@ -71,9 +78,9 @@ export default function LeadRefunds({
                         Refunds &amp; Credits
                     </h1>
                     <p className="mt-1 max-w-3xl text-muted-foreground">
-                        Leads you sent back that were refunded, and your Credits.
-                        1 Credit = $1 and you can use Credits when you buy a
-                        lead.
+                        The leads you sent back, what the admin decided and any
+                        refund you received. 1 Credit = $1 and you can use
+                        Credits when you buy a lead.
                     </p>
                 </div>
 
@@ -85,65 +92,139 @@ export default function LeadRefunds({
                 </div>
 
                 <section className="space-y-3">
-                    <h2 className="text-lg font-semibold">Refund history</h2>
-                    <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+                    <h2 className="text-lg font-semibold">Return requests</h2>
+
+                    <div className="space-y-3 md:hidden">
+                        {requests.length === 0 ? (
+                            <p className="rounded-xl border bg-card p-6 text-center text-sm text-muted-foreground">
+                                No return requests yet.
+                            </p>
+                        ) : null}
+                        {requests.map((request) => (
+                            <Link
+                                key={request.id}
+                                href={showRefund(request.id).url}
+                                className="block space-y-2 rounded-xl border bg-card p-4 shadow-sm"
+                            >
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <p className="font-medium">
+                                            {request.ticket} ·{' '}
+                                            {request.lead_reference}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {[
+                                                request.lead_type,
+                                                request.lead_city,
+                                            ]
+                                                .filter(Boolean)
+                                                .join(' · ')}
+                                        </p>
+                                    </div>
+                                    {statusBadge(request)}
+                                </div>
+                                <p className="line-clamp-2 text-sm">
+                                    {request.reason}
+                                </p>
+                                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                    <span>
+                                        Refund: {refundSummary(request)}
+                                    </span>
+                                    <span>{formatDate(request.created_at)}</span>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+
+                    <div className="hidden overflow-hidden rounded-xl border bg-card shadow-sm md:block">
                         <div className="overflow-x-auto">
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-muted/50 hover:bg-muted/50">
+                                        <TableHead>Ticket</TableHead>
                                         <TableHead>Lead</TableHead>
-                                        <TableHead>Refunded</TableHead>
-                                        <TableHead>How</TableHead>
+                                        <TableHead>Reason</TableHead>
                                         <TableHead>Status</TableHead>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Note</TableHead>
+                                        <TableHead>Refund</TableHead>
+                                        <TableHead>Sent</TableHead>
+                                        <TableHead />
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {refunds.length === 0 ? (
+                                    {requests.length === 0 ? (
                                         <TableRow>
                                             <TableCell
-                                                colSpan={6}
+                                                colSpan={7}
                                                 className="py-10 text-center text-muted-foreground"
                                             >
-                                                No refunds yet.
+                                                No return requests yet. Use
+                                                “Return this lead” on a
+                                                purchased lead to send one to
+                                                the admin.
                                             </TableCell>
                                         </TableRow>
                                     ) : null}
-                                    {refunds.map((refund) => (
-                                        <TableRow key={refund.id}>
+                                    {requests.map((request) => (
+                                        <TableRow key={request.id}>
+                                            <TableCell className="font-mono text-xs">
+                                                {request.ticket}
+                                            </TableCell>
                                             <TableCell>
                                                 <p className="font-medium">
-                                                    {refund.lead_reference}
+                                                    {request.lead_reference}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground">
                                                     {[
-                                                        refund.lead_type,
-                                                        refund.lead_city,
+                                                        request.lead_type,
+                                                        request.lead_city,
                                                     ]
                                                         .filter(Boolean)
                                                         .join(' · ')}
                                                 </p>
                                             </TableCell>
-                                            <TableCell className="font-medium">
-                                                ${refund.total_amount}
-                                            </TableCell>
-                                            <TableCell className="text-sm">
-                                                {refund.type_label}
-                                                <p className="text-xs text-muted-foreground">
-                                                    {refundDetail(refund)}
+                                            <TableCell className="max-w-xs">
+                                                <p className="text-xs font-medium text-muted-foreground">
+                                                    {request.category_label}
+                                                </p>
+                                                <p className="line-clamp-2 text-sm">
+                                                    {request.reason}
                                                 </p>
                                             </TableCell>
                                             <TableCell>
-                                                <Badge variant="outline">
-                                                    {refund.status_label}
-                                                </Badge>
+                                                {statusBadge(request)}
+                                            </TableCell>
+                                            <TableCell className="text-sm">
+                                                {refundSummary(request)}
+                                                {request.refund &&
+                                                request.refund.status !==
+                                                    'completed' ? (
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {
+                                                            request.refund
+                                                                .status_label
+                                                        }
+                                                    </p>
+                                                ) : null}
                                             </TableCell>
                                             <TableCell className="text-sm whitespace-nowrap">
-                                                {formatDate(refund.refunded_at)}
+                                                {formatDate(request.created_at)}
                                             </TableCell>
-                                            <TableCell className="max-w-xs text-sm text-muted-foreground">
-                                                {refund.note ?? '—'}
+                                            <TableCell className="text-right">
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    asChild
+                                                >
+                                                    <Link
+                                                        href={
+                                                            showRefund(
+                                                                request.id,
+                                                            ).url
+                                                        }
+                                                    >
+                                                        Details
+                                                    </Link>
+                                                </Button>
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -215,6 +296,7 @@ export default function LeadRefunds({
                     </div>
                 </section>
             </div>
+
         </>
     );
 }

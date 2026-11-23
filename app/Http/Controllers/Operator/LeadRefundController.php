@@ -4,47 +4,42 @@ namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
 use App\Models\CreditTransaction;
-use App\Models\LeadRefund;
+use App\Models\LeadIssueReport;
 use App\Services\CreditService;
+use App\Services\LeadRefundService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class LeadRefundController extends Controller
 {
-    public function __construct(private CreditService $credits) {}
+    public function __construct(
+        private CreditService $credits,
+        private LeadRefundService $refunds,
+    ) {}
 
     /**
-     * The member's refund history (basic lead info only, never contact details) and their Credits.
+     * One return request: the reason, the admin decision and the refund. Other members' requests are a 404.
+     */
+    public function show(Request $request, LeadIssueReport $report): Response
+    {
+        abort_unless($report->user_id === $request->user()->id, 404);
+
+        return Inertia::render('operator/leads/refund-details', [
+            'returnRequest' => $this->refunds->mapRequest($report),
+        ]);
+    }
+
+    /**
+     * The member's Credits, every return request with the admin decision and refund, and the Credits history.
+     * Only basic lead info is shown, never contact details.
      */
     public function index(Request $request): Response
     {
         $user = $request->user();
 
-        $refunds = LeadRefund::query()
-            ->where('user_id', $user->id)
-            ->with('report')
-            ->latest()
-            ->latest('id')
-            ->get()
-            ->map(fn (LeadRefund $refund): array => [
-                'id' => $refund->id,
-                'lead_reference' => $refund->report->lead_reference,
-                'lead_type' => $refund->report->lead_type,
-                'lead_city' => $refund->report->lead_city,
-                'total_amount' => $refund->total_amount,
-                'credit_amount' => $refund->credit_amount,
-                'card_amount' => $refund->card_amount,
-                'type_label' => $refund->type->label(),
-                'status' => $refund->status->value,
-                'status_label' => $refund->status->label(),
-                'note' => $refund->admin_note,
-                'refunded_at' => $refund->created_at->toIso8601String(),
-            ])
-            ->all();
-
         return Inertia::render('operator/leads/refunds', [
-            'refunds' => $refunds,
+            'requests' => $this->refunds->requestsFor($user),
             'creditHistory' => $this->credits->historyFor($user)
                 ->map(fn (CreditTransaction $row): array => [
                     'id' => $row->id,

@@ -59,6 +59,65 @@ class LeadRefundService
     }
 
     /**
+     * Every return request the member made, newest first, with the admin decision and refund (basic lead info only).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function requestsFor(User $user): array
+    {
+        return LeadIssueReport::query()
+            ->where('user_id', $user->id)
+            ->with(['refund', 'leadPurchase'])
+            ->latest()
+            ->latest('id')
+            ->get()
+            ->map(fn (LeadIssueReport $report): array => $this->mapRequest($report))
+            ->all();
+    }
+
+    /**
+     * One return request as the member sees it (basic lead info only).
+     *
+     * @return array<string, mixed>
+     */
+    public function mapRequest(LeadIssueReport $report): array
+    {
+        $report->loadMissing(['refund', 'leadPurchase']);
+
+        $purchase = $report->leadPurchase;
+        $credits = (int) $purchase->credits_applied;
+        $refund = $report->refund;
+
+        return [
+            'id' => $report->id,
+            'ticket' => 'T-'.$report->id,
+            'lead_reference' => $report->lead_reference,
+            'lead_type' => $report->lead_type,
+            'lead_city' => $report->lead_city,
+            'price' => $report->price,
+            'credits_paid' => $credits,
+            'card_paid' => max(0, (int) $purchase->price - $credits),
+            'purchased_at' => $report->purchased_at?->toIso8601String(),
+            'category_label' => $report->category->label(),
+            'reason' => $report->reason,
+            'status' => $report->status->value,
+            'status_label' => $report->status->label(),
+            'admin_note' => $report->admin_note,
+            'resolved_at' => $report->resolved_at?->toIso8601String(),
+            'created_at' => $report->created_at->toIso8601String(),
+            'refund' => $refund === null ? null : [
+                'type_label' => $refund->type->label(),
+                'total_amount' => $refund->total_amount,
+                'credit_amount' => $refund->credit_amount,
+                'card_amount' => $refund->card_amount,
+                'status' => $refund->status->value,
+                'status_label' => $refund->status->label(),
+                'created_at' => $refund->created_at->toIso8601String(),
+            ],
+        ];
+    }
+
+    /**
      * @return LengthAwarePaginator<int, LeadRefund>
      */
     public function paginate(?LeadRefundType $type = null, ?LeadRefundStatus $status = null, int $perPage = 15): LengthAwarePaginator

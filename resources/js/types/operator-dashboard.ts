@@ -96,3 +96,33 @@ export interface OperatorDashboardProps {
     newestLeads: OperatorLead[];
     activity: OperatorActivityItem[];
 }
+
+export type ReturnRequestRefund = {
+    type_label: string;
+    total_amount: number;
+    credit_amount: number;
+    card_amount: number;
+    status: 'pending' | 'completed' | 'failed';
+    status_label: string;
+    created_at: string;
+};
+
+export type ReturnRequest = {
+    id: number;
+    ticket: string;
+    lead_reference: string;
+    lead_type: string | null;
+    lead_city: string | null;
+    price: number;
+    credits_paid: number;
+    card_paid: number;
+    purchased_at: string | null;
+    category_label: string;
+    reason: string;
+    status: 'open' | 'approved' | 'rejected';
+    status_label: string;
+    admin_note: string | null;
+    resolved_at: string | null;
+    created_at: string;
+    refund: ReturnRequestRefund | null;
+};

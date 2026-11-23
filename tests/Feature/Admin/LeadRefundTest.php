@@ -20,6 +20,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Sleep;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
@@ -250,17 +251,107 @@ test('the member sees their refund history with basic lead info only', function 
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('operator/leads/refunds')
-            ->has('refunds', 1)
-            ->where('refunds.0.total_amount', 100)
-            ->where('refunds.0.credit_amount', 100)
-            ->where('refunds.0.note', 'Checked and refunded.')
+            ->has('requests', 1)
+            ->where('requests.0.status', 'approved')
+            ->where('requests.0.admin_note', 'Checked and refunded.')
+            ->where('requests.0.refund.total_amount', 100)
+            ->where('requests.0.refund.credit_amount', 100)
+            ->where('requests.0.credits_paid', 0)
+            ->where('requests.0.card_paid', 100)
             ->has('creditHistory', 1)
             ->where('creditHistory.0.amount', 100)
+            ->where('credits', 100)
         );
 
-    $props = json_encode($response->viewData('page')['props']['refunds']);
+    $props = json_encode($response->viewData('page')['props']['requests']);
 
     expect($props)->not->toContain('email')->and($props)->not->toContain('phone');
+});
+
+test('the member sees open and rejected requests with the reason too', function () {
+    $operator = makeOperator();
+    $purchaseA = LeadPurchase::factory()->create(['user_id' => $operator->id]);
+    $purchaseB = LeadPurchase::factory()->create(['user_id' => $operator->id]);
+
+    LeadIssueReport::factory()->create(['lead_purchase_id' => $purchaseA->id, 'user_id' => $operator->id, 'reason' => 'Nobody answered the phone.']);
+    LeadIssueReport::factory()->rejected()->create(['lead_purchase_id' => $purchaseB->id, 'user_id' => $operator->id]);
+
+    $this->actingAs($operator)
+        ->get(route('leads.refunds'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('requests', 2)
+            ->where('requests.0.status', 'rejected')
+            ->where('requests.1.status', 'open')
+            ->where('requests.1.reason', 'Nobody answered the phone.')
+            ->where('requests.1.refund', null)
+        );
+});
+
+test('the member opens one request on its own page and cannot open anyone elses', function () {
+    [$report, $purchase] = openReturn(100, 40);
+
+    $this->actingAs($this->admin)->post(route('admin.lead-issues.refund', $report), refundPayload());
+
+    $this->actingAs($purchase->user)
+        ->get(route('leads.refunds.show', $report))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('operator/leads/refund-details')
+            ->where('returnRequest.id', $report->id)
+            ->where('returnRequest.credits_paid', 40)
+            ->where('returnRequest.card_paid', 60)
+            ->where('returnRequest.admin_note', 'Checked and refunded.')
+            ->where('returnRequest.refund.total_amount', 100)
+        );
+
+    $this->actingAs(makeOperator())->get(route('leads.refunds.show', $report))->assertNotFound();
+    auth()->logout();
+    $this->get(route('leads.refunds.show', $report))->assertRedirect(route('login'));
+});
+
+test('billing keeps the refunded charge and adds a refund line', function () {
+    fakeSquareHttp([]);
+
+    [$report, $purchase] = openReturn(100, 40);
+
+    $this->actingAs($this->admin)->post(route('admin.lead-issues.refund', $report), refundPayload(['type' => 'credit']));
+
+    $this->actingAs($purchase->user)
+        ->get(route('billing.index'))
+        ->assertInertia(function (Assert $page) use ($purchase) {
+            $page->where('invoices', function ($invoices) use ($purchase) {
+                $rows = collect($invoices)->keyBy('id');
+                $charge = $rows['LP-'.$purchase->id];
+                $refund = $rows->first(fn ($row) => $row['source'] === 'refund');
+
+                return $charge['status'] === 'Refunded'
+                    && $charge['credits_used'] === 40
+                    && $charge['amount'] == 60
+                    && $refund['credits_refunded'] === 100
+                    && $refund['amount'] == 0
+                    && $refund['status'] === 'Completed';
+            });
+        });
+});
+
+test('billing shows a purchase paid fully with credits and a card refund as negative', function () {
+    fakeSquareHttp(['connect.squareupsandbox.com/v2/refunds' => Http::response(['refund' => ['id' => 'R9', 'status' => 'PENDING']])]);
+
+    [$creditOnly] = openReturn(80, 80);
+    $creditOnlyPurchase = $creditOnly->leadPurchase;
+    [$cardReport, $cardPurchase] = openReturn(100, 0);
+
+    $this->actingAs($this->admin)->post(route('admin.lead-issues.refund', $cardReport), refundPayload(['type' => 'dollar']));
+
+    $this->actingAs($creditOnlyPurchase->user)
+        ->get(route('billing.index'))
+        ->assertInertia(fn (Assert $page) => $page->where('invoices.0.credits_used', 80)->where('invoices.0.amount', 0));
+
+    $this->actingAs($cardPurchase->user)
+        ->get(route('billing.index'))
+        ->assertInertia(fn (Assert $page) => $page->where('invoices', fn ($invoices) => collect($invoices)->contains(
+            fn ($row) => $row['source'] === 'refund' && $row['amount'] == -100 && $row['status'] === 'Processing',
+        )));
 });
 
 test('the admin lists refunds and can filter them', function () {
