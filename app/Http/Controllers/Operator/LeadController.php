@@ -75,7 +75,8 @@ class LeadController extends Controller
                 $request->user(),
                 $source,
                 $lead,
-                (string) $request->validated('source_id'),
+                $request->validated('source_id'),
+                $request->boolean('use_credits'),
             );
         } catch (LeadUnavailableException|PaymentFailedException $exception) {
             throw ValidationException::withMessages(['payment' => $exception->getMessage()]);

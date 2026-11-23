@@ -10,7 +10,7 @@ const STYLES: Record<LeadIssueStatus, string> = {
 
 export const LEAD_ISSUE_STATUS_LABELS: Record<LeadIssueStatus, string> = {
     open: 'Open',
-    approved: 'Return approved',
+    approved: 'Refunded',
     rejected: 'Return rejected',
 };
 

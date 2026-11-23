@@ -4,6 +4,7 @@ namespace App\Http\Requests\Operator;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class PurchaseLeadRequest extends FormRequest
 {
@@ -13,15 +14,16 @@ class PurchaseLeadRequest extends FormRequest
     }
 
     /**
-     * The only client input is the single-use card token from Square's Web
-     * Payments SDK; the price is always decided on the server.
+     * Client input is the single-use card token from Square's Web Payments SDK (not needed when Credits
+     * cover the whole price) and whether to use Credits; the price is always decided on the server.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'source_id' => ['required', 'string', 'max:255'],
+            'use_credits' => ['sometimes', 'boolean'],
+            'source_id' => [Rule::requiredIf(! $this->boolean('use_credits')), 'nullable', 'string', 'max:255'],
         ];
     }
 

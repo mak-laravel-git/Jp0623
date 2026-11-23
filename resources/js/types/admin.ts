@@ -226,6 +226,8 @@ export interface AdminLeadIssueDetail {
     purchased_at: string | null;
     receipt_url: string | null;
     payment_status: string;
+    payment: AdminLeadIssuePayment;
+    refund: AdminLeadIssueRefund | null;
     operator: {
         name: string;
         email: string;
@@ -577,4 +579,49 @@ export function groupByGroup<T extends { group: string }>(
 
         return acc;
     }, {});
+}
+
+export interface AdminLeadIssuePayment {
+    total: number;
+    credits: number;
+    card: number;
+    can_refund: boolean;
+    can_refund_dollars: boolean;
+}
+
+export interface AdminLeadIssueRefund {
+    id: number;
+    type: 'dollar' | 'credit';
+    type_label: string;
+    total_amount: number;
+    credit_amount: number;
+    card_amount: number;
+    status: 'pending' | 'completed' | 'failed';
+    status_label: string;
+    failure_message: string | null;
+    square_refund_id: string | null;
+    lead_action_label: string;
+    refunded_by: string | null;
+    created_at: string;
+}
+
+export interface AdminRefundRow {
+    id: number;
+    report_id: number;
+    lead_reference: string;
+    lead_name: string | null;
+    lead_city: string | null;
+    operator_name: string;
+    operator_email: string;
+    type: 'dollar' | 'credit';
+    type_label: string;
+    total_amount: number;
+    credit_amount: number;
+    card_amount: number;
+    status: 'pending' | 'completed' | 'failed';
+    status_label: string;
+    failure_message: string | null;
+    lead_action: string;
+    lead_action_label: string;
+    created_at: string;
 }

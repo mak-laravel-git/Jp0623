@@ -30,15 +30,20 @@ export function LeadBuyDialog({
     open,
     onOpenChange,
 }: LeadBuyDialogProps) {
-    const { square, auth } = usePage().props;
+    const { square, auth, credits } = usePage().props;
+    const [useCredits, setUseCredits] = useState(true);
     const [processing, setProcessing] = useState(false);
     const [paymentError, setPaymentError] = useState<string | null>(null);
+    const price = lead?.price ?? 0;
+    const creditsApplied = useCredits ? Math.min(credits, price) : 0;
+    const cardAmount = price - creditsApplied;
+    const cardNeeded = cardAmount > 0;
     const {
         setContainer,
         ready,
         error: cardError,
         tokenize,
-    } = useSquareCard(square, open && lead !== null);
+    } = useSquareCard(square, open && lead !== null && cardNeeded);
 
     const handleOpenChange = (nextOpen: boolean) => {
         if (!nextOpen) {
@@ -61,19 +66,21 @@ export function LeadBuyDialog({
         setProcessing(true);
         setPaymentError(null);
 
-        let token: string;
+        let token: string | null = null;
 
         try {
-            token = await tokenize({
-                amount: lead.price.toFixed(2),
-                currencyCode: square?.currency ?? 'USD',
-                intent: 'CHARGE',
-                customerInitiated: true,
-                sellerKeyedIn: false,
-                billingContact: auth.user?.email
-                    ? { email: auth.user.email }
-                    : undefined,
-            });
+            if (cardNeeded) {
+                token = await tokenize({
+                    amount: cardAmount.toFixed(2),
+                    currencyCode: square?.currency ?? 'USD',
+                    intent: 'CHARGE',
+                    customerInitiated: true,
+                    sellerKeyedIn: false,
+                    billingContact: auth.user?.email
+                        ? { email: auth.user.email }
+                        : undefined,
+                });
+            }
         } catch (error) {
             setPaymentError(
                 error instanceof Error
@@ -89,7 +96,10 @@ export function LeadBuyDialog({
 
         router.post(
             purchase.url({ source: lead.source, lead: leadId }),
-            { source_id: token },
+            {
+                use_credits: useCredits && creditsApplied > 0,
+                source_id: token,
+            },
             {
                 preserveScroll: true,
                 onSuccess: () => handleOpenChange(false),
@@ -108,7 +118,7 @@ export function LeadBuyDialog({
         );
     };
 
-    const paymentsAvailable = square !== null;
+    const paymentsAvailable = square !== null || !cardNeeded;
 
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -142,7 +152,36 @@ export function LeadBuyDialog({
                     only.
                 </p>
 
-                {paymentsAvailable ? (
+                {credits > 0 ? (
+                    <div className="space-y-2 rounded-lg border p-3 text-sm">
+                        <p className="font-medium">Your Credits: {credits}</p>
+                        <label className="flex items-center gap-2">
+                            <input
+                                type="radio"
+                                name="credit-choice"
+                                checked={useCredits}
+                                onChange={() => setUseCredits(true)}
+                            />
+                            Use Credits
+                        </label>
+                        <label className="flex items-center gap-2">
+                            <input
+                                type="radio"
+                                name="credit-choice"
+                                checked={!useCredits}
+                                onChange={() => setUseCredits(false)}
+                            />
+                            Pay without Credits
+                        </label>
+                        <p className="text-muted-foreground">
+                            {creditsApplied > 0
+                                ? `${creditsApplied} Credits + ${money(cardAmount)} by card`
+                                : `${money(price)} by card`}
+                        </p>
+                    </div>
+                ) : null}
+
+                {cardNeeded && square !== null ? (
                     <div className="space-y-2">
                         <p className="text-sm font-medium">Card details</p>
                         <div
@@ -156,12 +195,12 @@ export function LeadBuyDialog({
                             </p>
                         ) : null}
                     </div>
-                ) : (
+                ) : cardNeeded ? (
                     <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
                         Payments are not available right now. Please try again
                         later.
                     </p>
-                )}
+                ) : null}
 
                 {paymentError ? (
                     <p
@@ -183,14 +222,20 @@ export function LeadBuyDialog({
                     </Button>
                     <Button
                         className="bg-brass text-brass-ink hover:bg-brass/90"
-                        disabled={processing || !paymentsAvailable || !ready}
+                        disabled={
+                            processing ||
+                            !paymentsAvailable ||
+                            (cardNeeded && !ready)
+                        }
                         onClick={() => {
                             void handlePay();
                         }}
                     >
                         {processing
                             ? 'Processing…'
-                            : `Pay ${money(lead.price)} and unlock`}
+                            : cardNeeded
+                              ? `Pay ${money(cardAmount)} and unlock`
+                              : 'Buy with Credits and unlock'}
                     </Button>
                 </DialogFooter>
             </DialogContent>

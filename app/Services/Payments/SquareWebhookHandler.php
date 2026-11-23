@@ -3,20 +3,25 @@
 namespace App\Services\Payments;
 
 use App\Models\LeadPurchase;
+use App\Models\LeadRefund;
 use App\Models\PaymentEvent;
 use App\Services\LeadPurchaseService;
+use App\Services\LeadRefundService;
 
 /**
  * Applies verified Square webhook events to lead purchases.
  *
- * Only `payment.created` / `payment.updated` change anything; other event types
+ * `payment.*` events settle purchases and `refund.*` events settle card refunds; other event types
  * are stored and ignored. All state changes go through
  * {@see LeadPurchaseService::applySquarePayment()}, which is idempotent, so the
  * webhook can race with the checkout request or the reconcile command safely.
  */
 class SquareWebhookHandler
 {
-    public function __construct(private LeadPurchaseService $purchases) {}
+    public function __construct(
+        private LeadPurchaseService $purchases,
+        private LeadRefundService $refunds,
+    ) {}
 
     /**
      * @return string One of the `PaymentEvent::OUTCOME_*` constants.
@@ -25,8 +30,37 @@ class SquareWebhookHandler
     {
         return match ($event->type) {
             'payment.created', 'payment.updated' => $this->handlePayment($event),
+            'refund.created', 'refund.updated' => $this->handleRefund($event),
             default => PaymentEvent::OUTCOME_IGNORED,
         };
+    }
+
+    private function handleRefund(PaymentEvent $event): string
+    {
+        $squareRefund = $event->payload['data']['object']['refund'] ?? null;
+
+        if (! is_array($squareRefund) || ! is_string($squareRefund['id'] ?? null)) {
+            return PaymentEvent::OUTCOME_IGNORED;
+        }
+
+        $refund = LeadRefund::query()->where('square_refund_id', $squareRefund['id'])->first();
+
+        if ($refund === null && is_string($squareRefund['payment_id'] ?? null)) {
+            $refund = LeadRefund::query()
+                ->whereNull('square_refund_id')
+                ->whereHas('leadPurchase', fn ($query) => $query->where('square_payment_id', $squareRefund['payment_id']))
+                ->first();
+        }
+
+        if ($refund === null) {
+            return PaymentEvent::OUTCOME_UNMATCHED;
+        }
+
+        $before = $refund->status;
+
+        return $this->refunds->applySquareRefund($refund, $squareRefund)->status !== $before
+            ? PaymentEvent::OUTCOME_APPLIED
+            : PaymentEvent::OUTCOME_IGNORED;
     }
 
     private function handlePayment(PaymentEvent $event): string

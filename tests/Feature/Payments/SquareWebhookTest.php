@@ -1,6 +1,9 @@
 <?php
 
+use App\Enums\LeadRefundStatus;
+use App\Models\LeadIssueReport;
 use App\Models\LeadPurchase;
+use App\Models\LeadRefund;
 use App\Models\PaymentEvent;
 use App\Models\VendingRequest;
 use App\Services\LeadPurchaseService;
@@ -246,4 +249,43 @@ test('a signed but malformed payload is rejected', function () {
     postSquareWebhook($this, ['hello' => 'world'])->assertStatus(400);
 
     expect(PaymentEvent::query()->count())->toBe(0);
+});
+
+test('a refund webhook completes or fails a pending card refund and is idempotent', function () {
+    $purchase = LeadPurchase::factory()->create(['square_payment_id' => 'PAY-RF']);
+    $report = LeadIssueReport::factory()->approved()->create([
+        'lead_purchase_id' => $purchase->id,
+        'user_id' => $purchase->user_id,
+    ]);
+    $refund = LeadRefund::factory()->create([
+        'lead_issue_report_id' => $report->id,
+        'type' => 'dollar',
+        'card_amount' => 50,
+        'credit_amount' => 0,
+        'status' => 'pending',
+        'square_refund_id' => 'REF-W',
+    ]);
+
+    $payload = fn (string $status, string $eventId): array => [
+        'merchant_id' => 'MERCHANT1',
+        'type' => 'refund.updated',
+        'event_id' => $eventId,
+        'created_at' => '2026-11-12T00:00:00Z',
+        'data' => [
+            'type' => 'refund',
+            'id' => 'REF-W',
+            'object' => ['refund' => ['id' => 'REF-W', 'status' => $status, 'payment_id' => 'PAY-RF']],
+        ],
+    ];
+
+    postSquareWebhook($this, $payload('COMPLETED', 'evt-r1'))->assertOk();
+    expect($refund->refresh()->status)->toBe(LeadRefundStatus::COMPLETED);
+
+    postSquareWebhook($this, $payload('FAILED', 'evt-r2'))->assertOk();
+    expect($refund->refresh()->status)->toBe(LeadRefundStatus::COMPLETED);
+
+    $refund->update(['status' => 'pending', 'square_status' => null]);
+    postSquareWebhook($this, $payload('REJECTED', 'evt-r3'))->assertOk();
+    expect($refund->refresh()->status)->toBe(LeadRefundStatus::FAILED)
+        ->and($refund->failure_message)->toContain('rejected');
 });
