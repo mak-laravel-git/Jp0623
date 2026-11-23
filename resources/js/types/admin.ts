@@ -629,3 +629,23 @@ export interface AdminRefundRow {
     lead_action_label: string;
     created_at: string;
 }
+
+export type PaymentSettingSource = 'admin' | 'env' | 'missing';
+
+export interface AdminPaymentSettings {
+    fields: Record<
+        | 'environment'
+        | 'application_id'
+        | 'location_id'
+        | 'webhook_url',
+        { value: string | null; source: PaymentSettingSource }
+    >;
+    secrets: Record<
+        'access_token' | 'webhook_signature_key',
+        { configured: boolean; last4: string | null; source: PaymentSettingSource }
+    >;
+    default_webhook_url: string;
+    updated_by: string | null;
+    updated_at: string | null;
+    is_configured: boolean;
+}

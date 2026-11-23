@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Enums\RoleEnum;
 use App\Models\CoffeeServiceRequest;
 use App\Models\VendingRequest;
+use App\Services\Payments\SquareSettingsService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Date;
@@ -20,7 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(SquareSettingsService::class);
     }
 
     /**
@@ -30,6 +31,9 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureSpatiePermissions();
+
+        // Square credentials saved in the admin dashboard take priority over .env.
+        $this->app->make(SquareSettingsService::class)->apply();
 
         Relation::morphMap([
             'vending' => VendingRequest::class,

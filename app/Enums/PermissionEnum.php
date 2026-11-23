@@ -185,6 +185,9 @@ enum PermissionEnum: string
     // MEMBERSHIP SETTINGS
     case MEMBERSHIP_SETTINGS_EDIT = 'membership-settings.edit';
 
+    // PAYMENT SETTINGS (Square credentials edited by the admin)
+    case PAYMENT_SETTINGS_EDIT = 'payment-settings.edit';
+
     // -------------------------------------------------------------------------
     // group() — returns the display group for the `group` DB column.
     // Used by PermissionSeeder and the role management UI (grouped checkboxes).
@@ -341,6 +344,8 @@ enum PermissionEnum: string
             self::PAYMENTS_INDEX => 'Payments',
 
             self::MEMBERSHIP_SETTINGS_EDIT => 'Membership Settings',
+
+            self::PAYMENT_SETTINGS_EDIT => 'Payment Settings',
         };
     }
 
