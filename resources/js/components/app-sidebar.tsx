@@ -240,6 +240,7 @@ export function AppSidebar() {
                 permissions: [
                     PERMISSIONS.MACHINE_CATEGORIES.INDEX,
                     PERMISSIONS.MACHINES.INDEX,
+                    PERMISSIONS.LOCATION_TYPES.INDEX,
                 ],
                 items: [
                     {
@@ -253,6 +254,34 @@ export function AppSidebar() {
                         href: adminMachines.index(),
                         icon: Package,
                         permissions: [PERMISSIONS.MACHINES.INDEX],
+                    },
+                    {
+                        title: 'Location Types',
+                        href: adminLocationTypes.index(),
+                        icon: MapPin,
+                        permissions: [PERMISSIONS.LOCATION_TYPES.INDEX],
+                    },
+                ],
+            },
+            {
+                title: 'Office Coffee Management',
+                icon: Coffee,
+                permissions: [
+                    PERMISSIONS.COFFEE_MACHINES.INDEX,
+                    PERMISSIONS.COFFEE_TYPES.INDEX,
+                ],
+                items: [
+                    {
+                        title: 'Coffee Machines',
+                        href: adminCoffeeMachines.index(),
+                        icon: Coffee,
+                        permissions: [PERMISSIONS.COFFEE_MACHINES.INDEX],
+                    },
+                    {
+                        title: 'Coffee Types',
+                        href: adminCoffeeTypes.index(),
+                        icon: Coffee,
+                        permissions: [PERMISSIONS.COFFEE_TYPES.INDEX],
                     },
                 ],
             },
@@ -270,40 +299,63 @@ export function AppSidebar() {
                 ],
             },
             {
-                title: 'Vending Requests',
-                href: adminVendingRequests.index(),
+                title: 'Lead Management',
                 icon: Inbox,
-                permissions: [PERMISSIONS.VENDING_REQUESTS.INDEX],
+                permissions: [
+                    PERMISSIONS.VENDING_REQUESTS.INDEX,
+                    PERMISSIONS.COFFEE_SERVICE_REQUESTS.INDEX,
+                    PERMISSIONS.LEAD_ISSUES.INDEX,
+                ],
+                items: [
+                    {
+                        title: 'Vending Requests',
+                        href: adminVendingRequests.index(),
+                        icon: Inbox,
+                        permissions: [PERMISSIONS.VENDING_REQUESTS.INDEX],
+                    },
+                    {
+                        title: 'Coffee Requests',
+                        href: adminCoffeeServiceRequests.index(),
+                        icon: Coffee,
+                        permissions: [
+                            PERMISSIONS.COFFEE_SERVICE_REQUESTS.INDEX,
+                        ],
+                    },
+                    {
+                        title: 'Lead issues',
+                        href: adminLeadIssues.index(),
+                        icon: Undo2,
+                        permissions: [PERMISSIONS.LEAD_ISSUES.INDEX],
+                    },
+                    {
+                        title: 'Refunds',
+                        href: adminRefunds.index(),
+                        icon: Wallet,
+                        permissions: [PERMISSIONS.LEAD_ISSUES.INDEX],
+                    },
+                ],
             },
             {
-                title: 'Location Types',
-                href: adminLocationTypes.index(),
-                icon: MapPin,
-                permissions: [PERMISSIONS.LOCATION_TYPES.INDEX],
-            },
-            {
-                title: 'Route Listings',
-                href: adminRouteListings.index(),
+                title: 'Route Management',
                 icon: Route,
-                permissions: [PERMISSIONS.ROUTE_LISTINGS.INDEX],
-            },
-            {
-                title: 'Route Inquiries',
-                href: adminRouteInquiries.index(),
-                icon: MessageSquare,
-                permissions: [PERMISSIONS.ROUTE_INQUIRIES.INDEX],
-            },
-            {
-                title: 'Lead issues',
-                href: adminLeadIssues.index(),
-                icon: Undo2,
-                permissions: [PERMISSIONS.LEAD_ISSUES.INDEX],
-            },
-            {
-                title: 'Refunds',
-                href: adminRefunds.index(),
-                icon: Wallet,
-                permissions: [PERMISSIONS.LEAD_ISSUES.INDEX],
+                permissions: [
+                    PERMISSIONS.ROUTE_LISTINGS.INDEX,
+                    PERMISSIONS.ROUTE_INQUIRIES.INDEX,
+                ],
+                items: [
+                    {
+                        title: 'Route Listings',
+                        href: adminRouteListings.index(),
+                        icon: Route,
+                        permissions: [PERMISSIONS.ROUTE_LISTINGS.INDEX],
+                    },
+                    {
+                        title: 'Route Inquiries',
+                        href: adminRouteInquiries.index(),
+                        icon: MessageSquare,
+                        permissions: [PERMISSIONS.ROUTE_INQUIRIES.INDEX],
+                    },
+                ],
             },
             {
                 title: 'Cities',
@@ -317,24 +369,7 @@ export function AppSidebar() {
                 icon: Newspaper,
                 permissions: [PERMISSIONS.ARTICLES.INDEX],
             },
-            {
-                title: 'Coffee Machines',
-                href: adminCoffeeMachines.index(),
-                icon: Coffee,
-                permissions: [PERMISSIONS.COFFEE_MACHINES.INDEX],
-            },
-            {
-                title: 'Coffee Types',
-                href: adminCoffeeTypes.index(),
-                icon: Coffee,
-                permissions: [PERMISSIONS.COFFEE_TYPES.INDEX],
-            },
-            {
-                title: 'Coffee Requests',
-                href: adminCoffeeServiceRequests.index(),
-                icon: Coffee,
-                permissions: [PERMISSIONS.COFFEE_SERVICE_REQUESTS.INDEX],
-            },
+
             {
                 title: 'Contact Messages',
                 href: adminContactMessages.index(),
@@ -348,22 +383,32 @@ export function AppSidebar() {
                 permissions: [PERMISSIONS.OPERATOR_SMS.INDEX],
             },
             {
-                title: 'Payments',
-                href: adminPayments.index(),
-                icon: Receipt,
-                permissions: [PERMISSIONS.PAYMENTS.INDEX],
-            },
-            {
-                title: 'Membership settings',
-                href: adminMembershipSettings.edit(),
+                title: 'Billing & Membership',
                 icon: CreditCard,
-                permissions: [PERMISSIONS.MEMBERSHIP_SETTINGS.EDIT],
-            },
-            {
-                title: 'Price history',
-                href: adminMembershipPriceHistory.index(),
-                icon: History,
-                permissions: [PERMISSIONS.MEMBERSHIP_SETTINGS.EDIT],
+                permissions: [
+                    PERMISSIONS.PAYMENTS.INDEX,
+                    PERMISSIONS.MEMBERSHIP_SETTINGS.EDIT,
+                ],
+                items: [
+                    {
+                        title: 'Payments',
+                        href: adminPayments.index(),
+                        icon: Receipt,
+                        permissions: [PERMISSIONS.PAYMENTS.INDEX],
+                    },
+                    {
+                        title: 'Membership settings',
+                        href: adminMembershipSettings.edit(),
+                        icon: CreditCard,
+                        permissions: [PERMISSIONS.MEMBERSHIP_SETTINGS.EDIT],
+                    },
+                    {
+                        title: 'Price history',
+                        href: adminMembershipPriceHistory.index(),
+                        icon: History,
+                        permissions: [PERMISSIONS.MEMBERSHIP_SETTINGS.EDIT],
+                    },
+                ],
             },
             {
                 title: 'Hero section',
