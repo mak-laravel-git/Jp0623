@@ -66,6 +66,7 @@ use App\Http\Controllers\Operator\RouteController;
 use App\Http\Controllers\Operator\RouteInquiryController;
 use App\Http\Controllers\Operator\SubscriptionController;
 use App\Http\Controllers\PostAttachmentController;
+use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\Webhooks\SquareWebhookController;
 use App\Models\User;
 use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
@@ -159,6 +160,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('throttle:20,1')
         ->name('subscription.auto-renew');
     Route::get('billing', [BillingController::class, 'index'])->name('billing.index');
+
+    // Our own receipts (the owner or an admin who can see payments).
+    Route::get('receipts/lead/{purchase}', [ReceiptController::class, 'lead'])->name('receipts.lead');
+    Route::get('receipts/membership/{payment}', [ReceiptController::class, 'membership'])->name('receipts.membership');
+    Route::get('receipts/refund/{refund}', [ReceiptController::class, 'refund'])->name('receipts.refund');
 
     // ── Demo landing page ─────────────────────────────────────────────────────
     Route::get('/file-upload-demo', [FileUploadDemoController::class, 'index'])

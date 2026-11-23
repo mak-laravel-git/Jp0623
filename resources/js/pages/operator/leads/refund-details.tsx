@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { PaymentDetailRows } from '@/components/payment-detail-rows';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { dashboard } from '@/routes';
@@ -96,6 +97,18 @@ export default function RefundDetails({
                         </dl>
                     </Card>
 
+                    <Card title="Payment details">
+                        <PaymentDetailRows rows={request.payment_details} />
+                        <a
+                            href={request.receipt_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-3 inline-block text-sm text-brass underline-offset-2 hover:underline"
+                        >
+                            View receipt
+                        </a>
+                    </Card>
+
                     <Card title="Why you sent it back">
                         <p className="text-sm font-medium">
                             {request.category_label}
@@ -125,32 +138,21 @@ export default function RefundDetails({
 
                     {request.refund ? (
                         <Card title="Refund">
-                            <dl className="space-y-3">
+                            <dl className="mb-3 space-y-3">
                                 <Row
                                     label="Refunded"
                                     value={`$${request.refund.total_amount}`}
                                 />
-                                <Row
-                                    label="How"
-                                    value={request.refund.type_label}
-                                />
-                                <Row
-                                    label="Back as Credits"
-                                    value={`${request.refund.credit_amount} Credits`}
-                                />
-                                <Row
-                                    label="Back to your card"
-                                    value={`$${request.refund.card_amount}`}
-                                />
-                                <Row
-                                    label="Status"
-                                    value={request.refund.status_label}
-                                />
-                                <Row
-                                    label="Date"
-                                    value={formatDate(request.refund.created_at)}
-                                />
                             </dl>
+                            <PaymentDetailRows rows={request.refund.details} />
+                            <a
+                                href={request.refund.receipt_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-3 inline-block text-sm text-brass underline-offset-2 hover:underline"
+                            >
+                                View refund receipt
+                            </a>
                             {request.refund.card_amount > 0 ? (
                                 <p className="mt-3 text-xs text-muted-foreground">
                                     Card refunds can take 5-10 business days to

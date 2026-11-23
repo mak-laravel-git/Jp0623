@@ -199,3 +199,16 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* Receipt pages: print only the receipt, without the app sidebar and top bar. */
+@media print {
+    [data-slot="sidebar"],
+    [data-slot="sidebar-inset"] > header {
+        display: none !important;
+    }
+
+    [data-slot="sidebar-inset"] {
+        margin: 0 !important;
+        box-shadow: none !important;
+    }
+}

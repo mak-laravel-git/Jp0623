@@ -313,7 +313,7 @@ class LeadService
                 LeadIssueStatus::REJECTED => 'issue_rejected',
                 default => 'ok',
             },
-            'receipt_url' => $isPaid ? $purchase->square_receipt_url : null,
+            'receipt_url' => $isPaid ? route('receipts.lead', $purchase) : null,
             'card_brand' => $isPaid ? $purchase->card_brand : null,
             'card_last4' => $isPaid ? $purchase->card_last4 : null,
         ];

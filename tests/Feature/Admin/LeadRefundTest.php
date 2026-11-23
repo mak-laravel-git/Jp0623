@@ -371,3 +371,35 @@ test('the admin lists refunds and can filter them', function () {
         ->get(route('admin.refunds.index', ['type' => 'dollar']))
         ->assertInertia(fn (Assert $page) => $page->has('refunds.data', 1)->where('refunds.data.0.type', 'dollar'));
 });
+
+test('admin and member see the transaction ids, card and refund details', function () {
+    fakeSquareHttp(['connect.squareupsandbox.com/v2/refunds' => Http::response(['refund' => ['id' => 'REF-DET', 'status' => 'PENDING']])]);
+
+    [$report, $purchase] = openReturn(100, 40);
+    $purchase->update(['square_order_id' => 'ORD-1', 'square_receipt_number' => 'rcpt1']);
+
+    $this->actingAs($this->admin)
+        ->get(route('admin.lead-issues.show', $report))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('report.payment.card_label', 'VISA ending 1111')
+            ->where('report.payment_details', fn ($rows) => collect($rows)->contains(fn ($row) => $row['label'] === 'Transaction ID' && $row['value'] === $purchase->square_payment_id)
+                && collect($rows)->contains(fn ($row) => $row['label'] === 'Order ID' && $row['value'] === 'ORD-1'))
+        );
+
+    $this->actingAs($this->admin)->post(route('admin.lead-issues.refund', $report), refundPayload(['type' => 'dollar']));
+
+    $refundRows = fn ($rows) => collect($rows)->contains(fn ($row) => $row['label'] === 'Refund ID' && $row['value'] === 'REF-DET')
+        && collect($rows)->contains(fn ($row) => $row['label'] === 'Refunded to' && $row['value'] === 'VISA ending 1111')
+        && collect($rows)->contains(fn ($row) => $row['label'] === 'Original transaction ID' && $row['value'] === $purchase->square_payment_id);
+
+    $this->actingAs($this->admin)
+        ->get(route('admin.lead-issues.show', $report))
+        ->assertInertia(fn (Assert $page) => $page->where('report.refund.details', $refundRows));
+
+    $this->actingAs($purchase->user)
+        ->get(route('leads.refunds.show', $report))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('returnRequest.refund.details', $refundRows)
+            ->where('returnRequest.payment_details', fn ($rows) => collect($rows)->contains(fn ($row) => $row['label'] === 'Transaction ID'))
+        );
+});

@@ -227,6 +227,7 @@ export interface AdminLeadIssueDetail {
     receipt_url: string | null;
     payment_status: string;
     payment: AdminLeadIssuePayment;
+    payment_details: { label: string; value: string }[];
     refund: AdminLeadIssueRefund | null;
     operator: {
         name: string;
@@ -582,6 +583,7 @@ export function groupByGroup<T extends { group: string }>(
 }
 
 export interface AdminLeadIssuePayment {
+    card_label: string | null;
     total: number;
     credits: number;
     card: number;
@@ -602,6 +604,8 @@ export interface AdminLeadIssueRefund {
     square_refund_id: string | null;
     lead_action_label: string;
     refunded_by: string | null;
+    details: { label: string; value: string }[];
+    receipt_url: string;
     created_at: string;
 }
 
