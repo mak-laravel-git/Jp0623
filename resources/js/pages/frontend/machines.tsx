@@ -1,5 +1,5 @@
-import { Head } from '@inertiajs/react';
 import { PageHero } from '@/components/frontend/page-hero';
+import { SeoHead } from '@/components/frontend/seo-head';
 import { MachinesFaqSection } from '@/components/machines/faq-section';
 import { MachinesIndustriesSection } from '@/components/machines/industries-section';
 import { LineupSection } from '@/components/machines/lineup-section';
@@ -15,13 +15,10 @@ export default function Machines({
 }: MachinesPageProps) {
     return (
         <>
-            <Head title="Vending Machines">
-                <meta
-                    head-key="description"
-                    name="description"
-                    content="Modern snack, drink and combo vending machines placed, stocked and serviced at no cost to your business."
-                />
-            </Head>
+            <SeoHead
+                title="Vending Machines"
+                description="Modern snack, drink and combo vending machines placed, stocked and serviced at no cost to your business."
+            />
 
             <PageHero
                 eyebrow={hero.eyebrow}

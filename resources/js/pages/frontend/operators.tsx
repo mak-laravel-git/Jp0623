@@ -1,12 +1,10 @@
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { BrandButton } from '@/components/frontend/brand-button';
 import { PageHero } from '@/components/frontend/page-hero';
+import { Reveal, brandCardHoverClass } from '@/components/frontend/reveal';
 import { SectionHead } from '@/components/frontend/section-head';
+import { SeoHead } from '@/components/frontend/seo-head';
 import { Band } from '@/components/frontend/wrap';
-import {
-    Reveal,
-    brandCardHoverClass,
-} from '@/components/frontend/reveal';
 import { FaqSection } from '@/components/home/faq-section';
 import { cn } from '@/lib/utils';
 
@@ -52,13 +50,7 @@ export default function OperatorsPage({
 }: OperatorsPageProps) {
     return (
         <>
-            <Head title="For Operators">
-                <meta
-                    head-key="description"
-                    name="description"
-                    content={hero.lead}
-                />
-            </Head>
+            <SeoHead title="For Operators" description={hero.lead} />
 
             <PageHero
                 eyebrow={hero.eyebrow}
@@ -88,7 +80,9 @@ export default function OperatorsPage({
                             {pricing.period}
                         </span>
                     </p>
-                    <p className="mt-3 text-sm text-brand-muted">{pricing.text}</p>
+                    <p className="mt-3 text-sm text-brand-muted">
+                        {pricing.text}
+                    </p>
                     <div className="mt-5">
                         <BrandButton href={pricing.cta.href}>
                             {pricing.cta.label}

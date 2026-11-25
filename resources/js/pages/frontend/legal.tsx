@@ -1,5 +1,5 @@
-import { Head } from '@inertiajs/react';
 import { PageHero } from '@/components/frontend/page-hero';
+import { SeoHead } from '@/components/frontend/seo-head';
 import { Band } from '@/components/frontend/wrap';
 
 type LegalPageProps = {
@@ -11,15 +11,12 @@ type LegalPageProps = {
 export default function LegalPage({ hero, sections }: LegalPageProps) {
     return (
         <>
-            <Head title={hero.title}>
-                <meta
-                    head-key="description"
-                    name="description"
-                    content={
-                        hero.lead ? `${hero.title}. ${hero.lead}` : hero.title
-                    }
-                />
-            </Head>
+            <SeoHead
+                title={hero.title}
+                description={
+                    hero.lead ? `${hero.title}. ${hero.lead}` : hero.title
+                }
+            />
 
             <PageHero title={hero.title} lead={hero.lead ?? undefined} />
 

@@ -1,5 +1,5 @@
-import { Head } from '@inertiajs/react';
 import { PageHero } from '@/components/frontend/page-hero';
+import { SeoHead } from '@/components/frontend/seo-head';
 import { OfficeCoffeeFaqSection } from '@/components/office-coffee/faq-section';
 import { OfficeCoffeeMachinesSection } from '@/components/office-coffee/machines-section';
 import { OfficeCoffeeRequestSection } from '@/components/office-coffee/request-section';
@@ -17,13 +17,10 @@ export default function OfficeCoffee({
 }: OfficeCoffeePageProps) {
     return (
         <>
-            <Head title="Office Coffee">
-                <meta
-                    head-key="description"
-                    name="description"
-                    content="Free office coffee brewers, delivery and installation, with supplies restocked on your schedule."
-                />
-            </Head>
+            <SeoHead
+                title="Office Coffee"
+                description="Free office coffee brewers, delivery and installation, with supplies restocked on your schedule."
+            />
 
             <PageHero
                 title={hero.title}

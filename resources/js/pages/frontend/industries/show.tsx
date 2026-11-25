@@ -1,5 +1,5 @@
-import { Head } from '@inertiajs/react';
 import { PageHero } from '@/components/frontend/page-hero';
+import { SeoHead } from '@/components/frontend/seo-head';
 import { ShortRequestSection } from '@/components/frontend/short-request-section';
 import { TextCardGrid } from '@/components/frontend/text-card-grid';
 import { DetailRelatedSection } from '@/components/machines/detail-related-section';
@@ -15,13 +15,10 @@ export default function IndustryShow({
 }: IndustryShowProps) {
     return (
         <>
-            <Head title={`${industry.label} Vending`}>
-                <meta
-                    head-key="description"
-                    name="description"
-                    content={hero.lead}
-                />
-            </Head>
+            <SeoHead
+                title={`${industry.label} Vending`}
+                description={hero.lead}
+            />
 
             <PageHero
                 crumb={crumb}

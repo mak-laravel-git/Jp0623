@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { SeoHead } from '@/components/frontend/seo-head';
 import { DetailOverviewSection } from '@/components/machines/detail-overview-section';
 import { DetailRelatedSection } from '@/components/machines/detail-related-section';
 import type { MachineDetailPageProps } from '@/types/frontend';
@@ -14,13 +14,7 @@ export default function MachineShow({
 }: MachineDetailPageProps) {
     return (
         <>
-            <Head title={machine.name}>
-                <meta
-                    head-key="description"
-                    name="description"
-                    content={machine.desc}
-                />
-            </Head>
+            <SeoHead title={machine.name} description={machine.desc} />
 
             <DetailOverviewSection
                 machine={machine}

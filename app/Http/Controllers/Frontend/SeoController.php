@@ -3,17 +3,21 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Services\SeoMetaService;
 use App\Services\SeoPageService;
 use Illuminate\Http\Response;
 
 class SeoController extends Controller
 {
-    public function __construct(private SeoPageService $pages) {}
+    public function __construct(
+        private SeoPageService $pages,
+        private SeoMetaService $meta,
+    ) {}
 
     public function sitemap(): Response
     {
         $entries = array_map(function (array $page): string {
-            $lines = ['  <url>', '    <loc>'.e($this->absoluteUrl($page['path'])).'</loc>'];
+            $lines = ['  <url>', '    <loc>'.e($this->meta->absoluteUrl($page['path'])).'</loc>'];
 
             if ($page['lastmod'] !== null) {
                 $lines[] = '    <lastmod>'.$page['lastmod'].'</lastmod>';
@@ -37,7 +41,7 @@ class SeoController extends Controller
     public function llms(): Response
     {
         $links = array_map(function (array $page): string {
-            $line = '- ['.$page['title'].']('.$this->absoluteUrl($page['path']).')';
+            $line = '- ['.$page['title'].']('.$this->meta->absoluteUrl($page['path']).')';
 
             return $page['description'] === '' ? $line : $line.': '.$page['description'];
         }, $this->pages->pages());
@@ -50,10 +54,5 @@ class SeoController extends Controller
             .implode("\n", $links)."\n";
 
         return response($text, 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
-    }
-
-    private function absoluteUrl(string $path): string
-    {
-        return rtrim((string) config('app.url'), '/').$path;
     }
 }

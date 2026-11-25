@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { SeoHead } from '@/components/frontend/seo-head';
 import { CitiesSection } from '@/components/home/cities-section';
 import { FaqSection } from '@/components/home/faq-section';
 import { FeaturedMachinesSection } from '@/components/home/featured-machines-section';
@@ -27,13 +27,10 @@ export default function Home({
 }: HomePageProps) {
     return (
         <>
-            <Head title="Home">
-                <meta
-                    head-key="description"
-                    name="description"
-                    content="Nationwide vending services with free machine installation, stocking and service. Vending machines, micro markets, Sandstar AI coolers and office coffee for businesses in all 50 states."
-                />
-            </Head>
+            <SeoHead
+                title="Home"
+                description="Nationwide vending services with free machine installation, stocking and service. Vending machines, micro markets, Sandstar AI coolers and office coffee for businesses in all 50 states."
+            />
 
             <HeroSection hero={hero} />
             <HowItWorksSection data={howItWorks} />

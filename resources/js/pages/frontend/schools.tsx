@@ -1,15 +1,12 @@
-import { Head } from '@inertiajs/react';
 import {
     CatalogImage,
     PRODUCT_IMAGE_FALLBACK,
 } from '@/components/frontend/catalog-image';
 import { PageHero } from '@/components/frontend/page-hero';
+import { Reveal, brandCardHoverClass } from '@/components/frontend/reveal';
 import { SectionHead } from '@/components/frontend/section-head';
+import { SeoHead } from '@/components/frontend/seo-head';
 import { Band } from '@/components/frontend/wrap';
-import {
-    Reveal,
-    brandCardHoverClass,
-} from '@/components/frontend/reveal';
 import { cn } from '@/lib/utils';
 
 type SchoolsPageProps = {
@@ -49,13 +46,7 @@ export default function SchoolsPage({
 }: SchoolsPageProps) {
     return (
         <>
-            <Head title="School Vending">
-                <meta
-                    head-key="description"
-                    name="description"
-                    content={hero.lead}
-                />
-            </Head>
+            <SeoHead title="School Vending" description={hero.lead} />
 
             <PageHero
                 title={hero.title}
@@ -88,33 +79,33 @@ export default function SchoolsPage({
             </Band>
 
             {products.items.length > 0 && (
-            <Band alt>
-                <SectionHead
-                    eyebrow={products.eyebrow}
-                    title={products.title}
-                />
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    {products.items.map((item, index) => (
-                        <Reveal key={item.title} delay={index * 0.05}>
-                            <div
-                                className={cn(
-                                    'flex h-full flex-col items-center gap-3 rounded-brand border border-brand-line bg-brand-surface p-5 text-center',
-                                    brandCardHoverClass,
-                                )}
-                            >
-                                <CatalogImage
-                                    src={item.image}
-                                    alt={item.title}
-                                    fallback={PRODUCT_IMAGE_FALLBACK}
-                                />
-                                <h3 className="font-display text-base font-bold text-brand-ink">
-                                    {item.title}
-                                </h3>
-                            </div>
-                        </Reveal>
-                    ))}
-                </div>
-            </Band>
+                <Band alt>
+                    <SectionHead
+                        eyebrow={products.eyebrow}
+                        title={products.title}
+                    />
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {products.items.map((item, index) => (
+                            <Reveal key={item.title} delay={index * 0.05}>
+                                <div
+                                    className={cn(
+                                        'flex h-full flex-col items-center gap-3 rounded-brand border border-brand-line bg-brand-surface p-5 text-center',
+                                        brandCardHoverClass,
+                                    )}
+                                >
+                                    <CatalogImage
+                                        src={item.image}
+                                        alt={item.title}
+                                        fallback={PRODUCT_IMAGE_FALLBACK}
+                                    />
+                                    <h3 className="font-display text-base font-bold text-brand-ink">
+                                        {item.title}
+                                    </h3>
+                                </div>
+                            </Reveal>
+                        ))}
+                    </div>
+                </Band>
             )}
 
             {guide.item && (

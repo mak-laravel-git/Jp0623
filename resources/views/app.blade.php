@@ -58,8 +58,18 @@
 
     @viteReactRefresh
     @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
+    @php($seo = $page['props']['seo'] ?? null)
     <x-inertia::head>
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>{{ $seo['title'] ?? config('app.name', 'Laravel') }}</title>
+        @if (! empty($seo['description']))
+            <meta data-inertia="description" name="description" content="{{ $seo['description'] }}">
+        @endif
+        @if (! empty($seo['canonical']))
+            <link data-inertia="canonical" rel="canonical" href="{{ $seo['canonical'] }}">
+        @endif
+        @if (! empty($seo['schema']))
+            <script data-inertia="schema" type="application/ld+json">{!! json_encode($seo['schema'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script>
+        @endif
     </x-inertia::head>
 </head>
 

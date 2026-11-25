@@ -9,6 +9,13 @@ export type FooterColumn = {
     links: NavLink[];
 };
 
+export type SeoData = {
+    title: string | null;
+    description: string | null;
+    canonical: string;
+    schema: Record<string, unknown> | null;
+};
+
 export type SiteData = {
     name: string;
     tagline: string;

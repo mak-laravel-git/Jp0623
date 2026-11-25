@@ -1,14 +1,11 @@
-import { Head } from '@inertiajs/react';
 import {
     CatalogImage,
     MACHINE_IMAGE_FALLBACK,
 } from '@/components/frontend/catalog-image';
 import { PageHero } from '@/components/frontend/page-hero';
-import {
-    Reveal,
-    brandCardHoverClass,
-} from '@/components/frontend/reveal';
+import { Reveal, brandCardHoverClass } from '@/components/frontend/reveal';
 import { SectionHead } from '@/components/frontend/section-head';
+import { SeoHead } from '@/components/frontend/seo-head';
 import { Band } from '@/components/frontend/wrap';
 import { cn } from '@/lib/utils';
 import type { ArticleDetail, ArticleItem } from '@/types/frontend';
@@ -21,13 +18,7 @@ type ResourceShowProps = {
 export default function ResourceShow({ article, related }: ResourceShowProps) {
     return (
         <>
-            <Head title={article.title}>
-                <meta
-                    head-key="description"
-                    name="description"
-                    content={article.excerpt}
-                />
-            </Head>
+            <SeoHead title={article.title} description={article.excerpt} />
 
             <PageHero
                 eyebrow={article.cat}
@@ -36,7 +27,10 @@ export default function ResourceShow({ article, related }: ResourceShowProps) {
                 crumb={[
                     { label: 'Home', href: '/' },
                     { label: 'Resources', href: '/resources' },
-                    { label: article.title, href: `/resources/${article.slug}` },
+                    {
+                        label: article.title,
+                        href: `/resources/${article.slug}`,
+                    },
                 ]}
             />
 

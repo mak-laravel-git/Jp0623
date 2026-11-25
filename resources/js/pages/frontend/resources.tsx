@@ -1,13 +1,10 @@
-import { Head } from '@inertiajs/react';
-import {
-    Reveal,
-    brandCardHoverClass,
-} from '@/components/frontend/reveal';
 import { PageHero } from '@/components/frontend/page-hero';
+import { Reveal, brandCardHoverClass } from '@/components/frontend/reveal';
 import { SectionHead } from '@/components/frontend/section-head';
+import { SeoHead } from '@/components/frontend/seo-head';
 import { Band } from '@/components/frontend/wrap';
-import type { ArticlesData } from '@/types/frontend';
 import { cn } from '@/lib/utils';
+import type { ArticlesData } from '@/types/frontend';
 
 type ResourcesPageProps = {
     hero: { title: string; lead: string };
@@ -17,13 +14,7 @@ type ResourcesPageProps = {
 export default function ResourcesPage({ hero, articles }: ResourcesPageProps) {
     return (
         <>
-            <Head title="Resources">
-                <meta
-                    head-key="description"
-                    name="description"
-                    content={hero.lead}
-                />
-            </Head>
+            <SeoHead title="Resources" description={hero.lead} />
 
             <PageHero title={hero.title} lead={hero.lead} />
 

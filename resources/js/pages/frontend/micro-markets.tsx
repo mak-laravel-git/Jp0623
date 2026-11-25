@@ -1,5 +1,5 @@
-import { Head } from '@inertiajs/react';
 import { PageHero } from '@/components/frontend/page-hero';
+import { SeoHead } from '@/components/frontend/seo-head';
 import { MicroMarketsCompareSection } from '@/components/micro-markets/compare-section';
 import { MicroMarketsEquipmentSection } from '@/components/micro-markets/equipment-section';
 import { MicroMarketsFaqSection } from '@/components/micro-markets/faq-section';
@@ -17,13 +17,10 @@ export default function MicroMarkets({
 }: MicroMarketsPageProps) {
     return (
         <>
-            <Head title="Micro Markets">
-                <meta
-                    head-key="description"
-                    name="description"
-                    content="A small self-checkout store in your break room with fresh food, snacks and drinks. Free equipment and setup."
-                />
-            </Head>
+            <SeoHead
+                title="Micro Markets"
+                description="A small self-checkout store in your break room with fresh food, snacks and drinks. Free equipment and setup."
+            />
 
             <PageHero
                 title={hero.title}
