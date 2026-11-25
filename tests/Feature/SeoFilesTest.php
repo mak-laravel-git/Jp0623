@@ -49,5 +49,5 @@ test('robots.txt points crawlers at the sitemap', function () {
 test('every page ships the Google tag in the document head', function () {
     $this->get(route('home'))
         ->assertOk()
-        ->assertSee('https://www.googletagmanager.com/gtm.js?id=GTM-TFFQVH9G', false);
+        ->assertSee('https://www.googletagmanager.com/gtm.js?id=GTM-5MTWQBFZ', false);
 });

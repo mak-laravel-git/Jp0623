@@ -2,8 +2,8 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
 
 <head>
-    {{-- Google tag (GTM-TFFQVH9G) --}}
-    <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-TFFQVH9G"></script>
+    {{-- Google tag (GTM-5MTWQBFZ) --}}
+    <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-5MTWQBFZ"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag() {
