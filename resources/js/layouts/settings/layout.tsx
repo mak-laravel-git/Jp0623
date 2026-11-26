@@ -4,6 +4,7 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/hooks/use-current-url';
+import { usePermission } from '@/hooks/use-permissions';
 import { cn, toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
@@ -21,15 +22,20 @@ const sidebarNavItems: NavItem[] = [
         href: editSecurity(),
         icon: null,
     },
-    {
-        title: 'Appearance',
-        href: editAppearance(),
-        icon: null,
-    },
 ];
+
+const appearanceNavItem: NavItem = {
+    title: 'Appearance',
+    href: editAppearance(),
+    icon: null,
+};
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
     const { isCurrentOrParentUrl } = useCurrentUrl();
+    const { hasAnyRole } = usePermission();
+    const navItems = hasAnyRole(['admin', 'super-admin'])
+        ? sidebarNavItems
+        : [...sidebarNavItems, appearanceNavItem];
 
     return (
         <div className="px-4 py-6">
@@ -44,7 +50,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                         className="flex flex-col space-y-1 space-x-0"
                         aria-label="Settings"
                     >
-                        {sidebarNavItems.map((item, index) => (
+                        {navItems.map((item, index) => (
                             <Button
                                 key={`${toUrl(item.href)}-${index}`}
                                 size="sm"
