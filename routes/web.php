@@ -149,6 +149,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('throttle:10,1')
         ->name('routes.inquiries.store');
     Route::get('account', [AccountController::class, 'index'])->name('account.index');
+    Route::put('account', [AccountController::class, 'update'])
+        ->middleware('throttle:20,1,account-profile')
+        ->name('account.update');
+    Route::post('account/email/code', [AccountController::class, 'sendEmailCode'])
+        ->middleware('throttle:5,1,account-email-code')
+        ->name('account.email.code');
+    Route::put('account/email', [AccountController::class, 'updateEmail'])
+        ->middleware('throttle:10,1,account-email')
+        ->name('account.email.update');
+    Route::post('account/phone/code', [AccountController::class, 'sendPhoneCode'])
+        ->middleware('throttle:5,1,account-phone-code')
+        ->name('account.phone.code');
+    Route::put('account/phone', [AccountController::class, 'updatePhone'])
+        ->middleware('throttle:10,1,account-phone')
+        ->name('account.phone.update');
+    Route::get('account/two-factor', [AccountController::class, 'twoFactor'])
+        ->middleware('password.confirm')
+        ->name('account.two-factor');
     Route::get('account/location', [AccountController::class, 'location'])->name('account.location');
     Route::put('account/location', [AccountController::class, 'updateLocation'])
         ->middleware('throttle:20,1')

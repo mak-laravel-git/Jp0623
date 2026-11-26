@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureOperatorMembershipActive;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RedirectMembersFromSettings;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -35,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
             'membership.active' => EnsureOperatorMembershipActive::class,
+            'settings.staff' => RedirectMembersFromSettings::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
