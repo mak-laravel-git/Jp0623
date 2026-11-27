@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             HomeFaqSeeder::class,
             ReviewSeeder::class,
             MachineFaqSeeder::class,
+            MicroMarketFaqSeeder::class,
             OfficeCoffeeFaqSeeder::class,
             AboutFaqSeeder::class,
             CoffeeMachineSeeder::class,

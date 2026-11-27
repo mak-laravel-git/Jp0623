@@ -139,24 +139,8 @@ class MicroMarketsPageData
         return [
             'eyebrow' => 'FAQ',
             'title' => 'Micro market questions.',
-            'items' => [
-                [
-                    'q' => 'How much space does a micro market need?',
-                    'a' => 'Most start at about 8 by 10 feet. We size it to your room.',
-                ],
-                [
-                    'q' => 'Is there a cost to the business?',
-                    'a' => 'No. Equipment, install and stocking are covered by the operator.',
-                ],
-                [
-                    'q' => 'What about theft?',
-                    'a' => 'Kiosks have cameras and most markets have very low loss.',
-                ],
-                [
-                    'q' => 'Do you offer micro markets nationwide?',
-                    'a' => 'Yes, through local operators in all 50 states.',
-                ],
-            ],
+            // Populated from active MicroMarketFaq records in MicroMarketsController.
+            'items' => [],
         ];
     }
 }

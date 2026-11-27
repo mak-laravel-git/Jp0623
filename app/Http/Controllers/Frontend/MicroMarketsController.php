@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend;
 use App\Demo\MicroMarketsPageData;
 use App\Http\Controllers\Controller;
 use App\Services\MachineService;
+use App\Services\MicroMarketFaqService;
 use App\Services\ProductService;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -20,6 +21,7 @@ class MicroMarketsController extends Controller
     public function __construct(
         private ProductService $products,
         private MachineService $machines,
+        private MicroMarketFaqService $faqs,
     ) {}
 
     public function index(): Response
@@ -27,6 +29,7 @@ class MicroMarketsController extends Controller
         $page = MicroMarketsPageData::all();
         $page['offerings']['items'] = $this->products->listForKinds(self::OFFERING_KINDS);
         $page['compare']['items'] = $this->machines->compareCardsForFrontend(self::COMPARE_MACHINE_SLUGS);
+        $page['faqs']['items'] = $this->faqs->listForFrontend();
 
         return Inertia::render('frontend/micro-markets', $page);
     }

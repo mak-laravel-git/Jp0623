@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\MachineFaqController;
 use App\Http\Controllers\Admin\MembershipCustomPriceController;
 use App\Http\Controllers\Admin\MembershipPriceHistoryController;
 use App\Http\Controllers\Admin\MembershipSettingController;
+use App\Http\Controllers\Admin\MicroMarketFaqController;
 use App\Http\Controllers\Admin\OfficeCoffeeFaqController;
 use App\Http\Controllers\Admin\OperatorSmsController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
@@ -516,6 +517,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->middleware(['permission:'.PermissionEnum::OFFICE_COFFEE_FAQS_EDIT->value, HandlePrecognitiveRequests::class]);
             Route::delete('office-coffee-faqs/{office_coffee_faq}', 'destroy')->name('office-coffee-faqs.destroy')
                 ->middleware('permission:'.PermissionEnum::OFFICE_COFFEE_FAQS_DELETE->value);
+        });
+
+        // Micro market FAQs — public micro markets page FAQ items.
+        Route::controller(MicroMarketFaqController::class)->group(function () {
+            Route::get('micro-market-faqs', 'index')->name('micro-market-faqs.index')
+                ->middleware('permission:'.PermissionEnum::MICRO_MARKET_FAQS_INDEX->value);
+            Route::get('micro-market-faqs/create', 'create')->name('micro-market-faqs.create')
+                ->middleware('permission:'.PermissionEnum::MICRO_MARKET_FAQS_CREATE->value);
+            Route::post('micro-market-faqs', 'store')->name('micro-market-faqs.store')
+                ->middleware(['permission:'.PermissionEnum::MICRO_MARKET_FAQS_CREATE->value, HandlePrecognitiveRequests::class]);
+            Route::get('micro-market-faqs/{micro_market_faq}/edit', 'edit')->name('micro-market-faqs.edit')
+                ->middleware('permission:'.PermissionEnum::MICRO_MARKET_FAQS_EDIT->value);
+            Route::put('micro-market-faqs/{micro_market_faq}', 'update')->name('micro-market-faqs.update')
+                ->middleware(['permission:'.PermissionEnum::MICRO_MARKET_FAQS_EDIT->value, HandlePrecognitiveRequests::class]);
+            Route::delete('micro-market-faqs/{micro_market_faq}', 'destroy')->name('micro-market-faqs.destroy')
+                ->middleware('permission:'.PermissionEnum::MICRO_MARKET_FAQS_DELETE->value);
         });
 
         // Coffee machines — equipment cards on the public office coffee page.
