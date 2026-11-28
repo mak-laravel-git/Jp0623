@@ -74,11 +74,11 @@ test('admin can view operators filtered by mile range from a lead', function () 
             'latitude' => $lead->latitude,
             'longitude' => $lead->longitude,
             'range' => '0-100',
-            'reference_key' => 'vending:' . $lead->id,
+            'reference_key' => 'vending:'.$lead->id,
         ]))
         ->assertOk()
         ->assertInertia(
-            fn(Assert $page) => $page
+            fn (Assert $page) => $page
                 ->component('admin/operator-sms/index')
                 ->has('operators', 1)
                 ->where('operators.0.id', $near->id)
@@ -112,7 +112,7 @@ test('admin can search operators by name or email', function () {
         ->get(route('admin.operator-sms.index', ['search' => 'harbor@example.com']))
         ->assertOk()
         ->assertInertia(
-            fn(Assert $page) => $page
+            fn (Assert $page) => $page
                 ->component('admin/operator-sms/index')
                 ->has('operators', 1)
                 ->where('operators.0.id', $match->id)
@@ -175,4 +175,85 @@ test('send validation requires operators and message', function () {
             'message' => '',
         ])
         ->assertSessionHasErrors(['operator_ids', 'message']);
+});
+
+test('admin can send an sms to a typed number', function () {
+    Http::preventStrayRequests();
+    Http::fake([
+        'api.twilio.com/2010-04-01/Accounts/ACtestsid/Messages.json' => Http::response(['sid' => 'SMnumber', 'status' => 'queued'], 201),
+    ]);
+
+    $this->actingAs($this->admin)
+        ->from(route('admin.operator-sms.index'))
+        ->post(route('admin.operator-sms.send-number'), [
+            'phone_number' => '(713) 555-0100',
+            'message' => 'Hello there',
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('admin.operator-sms.index'));
+
+    Http::assertSentCount(1);
+    Http::assertSent(fn ($request): bool => $request['To'] === '+17135550100'
+        && $request['Body'] === 'Hello there');
+});
+
+test('users without permission cannot send an sms to a typed number', function () {
+    Http::preventStrayRequests();
+
+    $this->actingAs(User::factory()->create())
+        ->post(route('admin.operator-sms.send-number'), [
+            'phone_number' => '+17135550100',
+            'message' => 'Hello there',
+        ])
+        ->assertForbidden();
+
+    Http::assertNothingSent();
+});
+
+test('sending to a typed number validates the number and message', function (string $number) {
+    Http::preventStrayRequests();
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.operator-sms.send-number'), [
+            'phone_number' => $number,
+            'message' => '',
+        ])
+        ->assertSessionHasErrors(['phone_number', 'message']);
+
+    Http::assertNothingSent();
+})->with([
+    'empty' => '',
+    'words' => 'call me 7135550100',
+    'too short' => '12345',
+    'leading zero without country code' => '01568808176',
+]);
+
+test('the admin sees why twilio rejected the typed number', function () {
+    Http::preventStrayRequests();
+    Http::fake([
+        'api.twilio.com/2010-04-01/Accounts/ACtestsid/Messages.json' => Http::response(['code' => 21610, 'message' => 'Attempt to send to unsubscribed recipient'], 400),
+    ]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.operator-sms.send-number'), [
+            'phone_number' => '+17135550100',
+            'message' => 'Hello there',
+        ])
+        ->assertSessionHasErrors([
+            'phone_number' => 'Twilio did not accept the message: Attempt to send to unsubscribed recipient',
+        ]);
+});
+
+test('sending to a typed number is refused while twilio is switched off', function () {
+    Http::preventStrayRequests();
+    config(['services.twilio.enabled' => false]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.operator-sms.send-number'), [
+            'phone_number' => '+17135550100',
+            'message' => 'Hello there',
+        ])
+        ->assertSessionHasErrors(['phone_number']);
+
+    Http::assertNothingSent();
 });

@@ -5,12 +5,19 @@ namespace App\Services;
 use App\Jobs\SendAdminOperatorSms;
 use App\Models\CoffeeServiceRequest;
 use App\Models\OperatorProfile;
+use App\Models\User;
 use App\Models\VendingRequest;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class AdminOperatorSmsService
 {
-    public function __construct(private NearbyOperatorLocator $locator) {}
+    public function __construct(
+        private NearbyOperatorLocator $locator,
+        private TwilioSmsService $twilio,
+    ) {}
 
     /**
      * @return list<array{
@@ -44,8 +51,8 @@ class AdminOperatorSmsService
 
         foreach ($vending as $request) {
             $options[] = [
-                'key' => 'vending:' . $request->id,
-                'label' => 'Vending #' . $request->id . ' — ' . $request->business_name,
+                'key' => 'vending:'.$request->id,
+                'label' => 'Vending #'.$request->id.' — '.$request->business_name,
                 'type' => 'vending',
                 'id' => $request->id,
                 'latitude' => (float) $request->latitude,
@@ -61,8 +68,8 @@ class AdminOperatorSmsService
 
         foreach ($coffee as $request) {
             $options[] = [
-                'key' => 'coffee:' . $request->id,
-                'label' => 'Coffee #' . $request->id . ' — ' . $request->business_name,
+                'key' => 'coffee:'.$request->id,
+                'label' => 'Coffee #'.$request->id.' — '.$request->business_name,
                 'type' => 'coffee',
                 'id' => $request->id,
                 'latitude' => (float) $request->latitude,
@@ -111,7 +118,7 @@ class AdminOperatorSmsService
         $operators = $operators->take($limit)->values();
 
         return [
-            'operators' => $operators->map(fn(OperatorProfile $operator): array => $this->serialize($operator))->all(),
+            'operators' => $operators->map(fn (OperatorProfile $operator): array => $this->serialize($operator))->all(),
             'total' => $total,
             'truncated' => $truncated,
         ];
@@ -136,7 +143,7 @@ class AdminOperatorSmsService
             ->where('phone', '!=', '')
             ->orderBy('id')
             ->pluck('id')
-            ->map(fn($id): int => (int) $id)
+            ->map(fn ($id): int => (int) $id)
             ->all();
 
         if ($ids === []) {
@@ -151,6 +158,40 @@ class AdminOperatorSmsService
     }
 
     /**
+     * Text one number typed by the admin. Sent right away (not queued) so the admin sees Twilio's answer.
+     *
+     * @throws ValidationException
+     */
+    public function sendToNumber(string $toE164, string $message, User $admin): void
+    {
+        if (! $this->twilio->isEnabled()) {
+            throw ValidationException::withMessages([
+                'phone_number' => 'Twilio is switched off or incomplete. Finish the Twilio settings first.',
+            ]);
+        }
+
+        try {
+            $result = $this->twilio->send($toE164, trim($message));
+        } catch (RequestException $exception) {
+            $reason = $exception->response->json('message') ?? 'HTTP '.$exception->response->status();
+
+            throw ValidationException::withMessages([
+                'phone_number' => 'Twilio did not accept the message: '.$reason,
+            ]);
+        } catch (ConnectionException) {
+            throw ValidationException::withMessages([
+                'phone_number' => 'Could not reach Twilio. Check the Twilio message log before trying again.',
+            ]);
+        }
+
+        Log::info('Admin sent an SMS to a typed number.', [
+            'admin_id' => $admin->id,
+            'to_last4' => substr($toE164, -4),
+            'sid' => $result['sid'],
+        ]);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function serialize(OperatorProfile $operator): array
@@ -158,7 +199,7 @@ class AdminOperatorSmsService
         return [
             'id' => $operator->id,
             'user_id' => $operator->user_id,
-            'name' => trim($operator->first_name . ' ' . $operator->last_name),
+            'name' => trim($operator->first_name.' '.$operator->last_name),
             'email' => $operator->user?->email,
             'company_name' => $operator->company_name,
             'phone' => $operator->phone,

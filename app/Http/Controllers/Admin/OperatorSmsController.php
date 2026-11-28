@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\SendNumberSmsRequest;
 use App\Http\Requests\Admin\SendOperatorSmsRequest;
 use App\Services\AdminOperatorSmsService;
 use App\Services\SmsTemplateService;
@@ -79,6 +80,23 @@ class OperatorSmsController extends Controller
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => "SMS queued for {$count} operator".($count === 1 ? '' : 's').'.',
+        ]);
+
+        return redirect()->back();
+    }
+
+    /**
+     * Send one SMS to a number typed by the admin.
+     */
+    public function sendToNumber(SendNumberSmsRequest $request): RedirectResponse
+    {
+        $number = $request->validated('phone_number');
+
+        $this->operatorSms->sendToNumber($number, $request->validated('message'), $request->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => "Twilio accepted the SMS to {$number}.",
         ]);
 
         return redirect()->back();

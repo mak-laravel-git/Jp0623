@@ -3,6 +3,7 @@ import { Search, Send } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { OperatorSmsTabs } from '@/components/admin/operator-sms-tabs';
+import { SendNumberSmsForm } from '@/components/admin/send-number-sms-form';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -599,6 +600,8 @@ export default function OperatorSmsIndex({
                         </Button>
                     </form>
                 )}
+
+                {can(PERMISSIONS.OPERATOR_SMS.SEND) && <SendNumberSmsForm />}
             </div>
         </>
     );

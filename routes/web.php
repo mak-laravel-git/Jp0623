@@ -369,6 +369,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->middleware('permission:'.PermissionEnum::OPERATOR_SMS_INDEX->value);
             Route::post('operator-sms', 'send')->name('operator-sms.send')
                 ->middleware('permission:'.PermissionEnum::OPERATOR_SMS_SEND->value);
+            Route::post('operator-sms/number', 'sendToNumber')->name('operator-sms.send-number')
+                ->middleware(['permission:'.PermissionEnum::OPERATOR_SMS_SEND->value, 'throttle:10,1']);
         });
 
         // Twilio credentials and SMS options saved in the dashboard instead of .env.
