@@ -3,6 +3,10 @@ import { Band } from '@/components/frontend/wrap';
 import type { FaqsData } from '@/types/frontend';
 
 export function MicroMarketsFaqSection({ data }: { data: FaqsData }) {
+    if (data.items.length === 0) {
+        return null;
+    }
+
     return (
         <Band>
             <SectionHead

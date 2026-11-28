@@ -130,3 +130,12 @@ export type ReturnRequest = {
     receipt_url: string;
     refund: ReturnRequestRefund | null;
 };
+
+export type OperatorAccount = {
+    firstName: string;
+    lastName: string;
+    company: string;
+    email: string;
+    phone: string;
+    hasProfile: boolean;
+};

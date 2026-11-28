@@ -363,6 +363,16 @@ export interface AdminOfficeCoffeeFaq {
     updated_at: string;
 }
 
+export interface AdminMicroMarketFaq {
+    id: number;
+    question: string;
+    answer: string;
+    sort_order: number;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
 export interface AdminMachine {
     id: number;
     machine_category_id: number;
