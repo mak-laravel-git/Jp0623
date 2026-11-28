@@ -9,12 +9,11 @@ use RuntimeException;
 
 class TwilioSmsService
 {
+    public function __construct(private TwilioSettingsService $settings) {}
+
     public function isEnabled(): bool
     {
-        return (bool) config('services.twilio.enabled')
-            && filled(config('services.twilio.sid'))
-            && filled(config('services.twilio.token'))
-            && filled(config('services.twilio.from'));
+        return $this->settings->isReady();
     }
 
     /**
@@ -25,14 +24,15 @@ class TwilioSmsService
      */
     public function send(string $toE164, string $body): array
     {
-        if (! $this->isEnabled()) {
+        $config = $this->settings->current();
+
+        if (! $this->settings->isReady($config)) {
             throw new RuntimeException('Twilio SMS is not configured.');
         }
 
-        $sid = (string) config('services.twilio.sid');
-        $token = (string) config('services.twilio.token');
-        $from = (string) config('services.twilio.from');
-        $sandboxPrefix = trim((string) config('services.twilio.sandbox_message_prefix', ''));
+        $sid = (string) $config['sid'];
+        $token = (string) $config['token'];
+        $sandboxPrefix = trim((string) ($config['sandbox_message_prefix'] ?? ''));
 
         if ($sandboxPrefix !== '' && ! str_starts_with($body, $sandboxPrefix)) {
             $body = trim($sandboxPrefix.' '.$body);
@@ -40,15 +40,13 @@ class TwilioSmsService
 
         $payload = [
             'To' => $toE164,
-            'From' => $from,
             'Body' => $body,
         ];
 
-        $messagingServiceSid = config('services.twilio.messaging_service_sid');
-
-        if (filled($messagingServiceSid)) {
-            unset($payload['From']);
-            $payload['MessagingServiceSid'] = (string) $messagingServiceSid;
+        if (filled($config['messaging_service_sid'] ?? null)) {
+            $payload['MessagingServiceSid'] = (string) $config['messaging_service_sid'];
+        } else {
+            $payload['From'] = (string) $config['from'];
         }
 
         $response = Http::withBasicAuth($sid, $token)

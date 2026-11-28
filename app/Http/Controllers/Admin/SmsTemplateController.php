@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\StoreSmsTemplateRequest;
 use App\Http\Requests\Admin\UpdateSmsTemplateRequest;
 use App\Models\SmsTemplate;
 use App\Services\SmsTemplateService;
+use App\Services\TwilioSettingsService;
 use App\Support\SmsTemplateRenderer;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -15,7 +16,10 @@ use Inertia\Response;
 
 class SmsTemplateController extends Controller
 {
-    public function __construct(private SmsTemplateService $templates) {}
+    public function __construct(
+        private SmsTemplateService $templates,
+        private TwilioSettingsService $twilioSettings,
+    ) {}
 
     public function index(): Response
     {
@@ -77,7 +81,7 @@ class SmsTemplateController extends Controller
     private function instructions(): array
     {
         return [
-            'When a public vending or coffee form is submitted, operators within 100 miles receive an SMS.',
+            'When a public vending or coffee form is submitted, operators within '.$this->twilioSettings->leadRadiusMiles().' miles receive an SMS.',
             'Create one active Auto — Vending template and one active Auto — Coffee template. Activating a new auto template turns the previous one off.',
             'Create Manual templates for ready-made messages on the Send SMS tab. Admins can pick a template or type a custom message.',
             'Use placeholders like {{business_name}}, {{contact_name}}, {{phone}}, {{email}}, {{location}}, and {{lead_type}}.',

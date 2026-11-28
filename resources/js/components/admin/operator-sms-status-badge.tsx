@@ -11,7 +11,7 @@ const LABELS: Record<OperatorSmsStatus, string> = {
 
 const DESCRIPTIONS: Record<OperatorSmsStatus, string> = {
     pending: 'SMS alert to nearby operators is queued or still sending.',
-    done: 'Nearby operators within 100 miles were notified by SMS.',
+    done: 'Nearby operators were notified by SMS.',
     partial: 'Some nearby operators were notified; others failed.',
     failed: 'SMS alert to nearby operators could not be sent.',
     skipped:
@@ -63,4 +63,4 @@ export function OperatorSmsStatusBadge({
 
 export const OPERATOR_SMS_COLUMN_LABEL = 'Nearby operator SMS';
 export const OPERATOR_SMS_COLUMN_HINT =
-    'Shows whether operators within 100 miles were texted about this lead.';
+    'Shows whether nearby operators were texted about this lead.';

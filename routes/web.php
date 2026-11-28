@@ -31,6 +31,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\RouteInquiryController as AdminRouteInquiryController;
 use App\Http\Controllers\Admin\RouteListingController;
 use App\Http\Controllers\Admin\SmsTemplateController;
+use App\Http\Controllers\Admin\TwilioSettingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VendingRequestController as AdminVendingRequestController;
 use App\Http\Controllers\Auth\LocationSuggestController;
@@ -349,6 +350,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->middleware('permission:'.PermissionEnum::OPERATOR_SMS_INDEX->value);
             Route::post('operator-sms', 'send')->name('operator-sms.send')
                 ->middleware('permission:'.PermissionEnum::OPERATOR_SMS_SEND->value);
+        });
+
+        // Twilio credentials and SMS options saved in the dashboard instead of .env.
+        Route::controller(TwilioSettingController::class)->group(function () {
+            Route::get('twilio-settings', 'edit')->name('twilio-settings.edit')
+                ->middleware('permission:'.PermissionEnum::TWILIO_SETTINGS_EDIT->value);
+            Route::put('twilio-settings', 'update')->name('twilio-settings.update')
+                ->middleware('permission:'.PermissionEnum::TWILIO_SETTINGS_EDIT->value);
+            Route::post('twilio-settings/test', 'test')->name('twilio-settings.test')
+                ->middleware(['permission:'.PermissionEnum::TWILIO_SETTINGS_EDIT->value, 'throttle:10,1']);
         });
 
         // Lead + membership payments — read-only history (refunds deferred).

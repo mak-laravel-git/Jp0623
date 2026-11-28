@@ -44,6 +44,7 @@ return [
         | Trial / sandbox: set TWILIO_ENABLED=true with your Account SID, Auth Token,
         | and Twilio phone number. Trial accounts can only SMS verified numbers.
         | Optional TWILIO_SANDBOX_MESSAGE_PREFIX if your sandbox requires a keyword.
+        | Values saved in the admin dashboard (Twilio settings) take priority over these.
         */
         'enabled' => (bool) env('TWILIO_ENABLED', false),
         'sid' => env('TWILIO_SID'),

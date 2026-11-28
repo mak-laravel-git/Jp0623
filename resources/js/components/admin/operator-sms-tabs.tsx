@@ -1,10 +1,18 @@
 import { Link } from '@inertiajs/react';
-import { FileText, Send } from 'lucide-react';
+import { FileText, Send, Settings2 } from 'lucide-react';
+import { usePermission } from '@/hooks/use-permissions';
 import { cn } from '@/lib/utils';
 import operatorSms from '@/routes/admin/operator-sms';
 import templates from '@/routes/admin/operator-sms/templates';
+import twilioSettings from '@/routes/admin/twilio-settings';
+import { PERMISSIONS } from '@/types/permissions';
 
-export function OperatorSmsTabs({ active }: { active: 'send' | 'templates' }) {
+export function OperatorSmsTabs({
+    active,
+}: {
+    active: 'send' | 'templates' | 'settings';
+}) {
+    const { can } = usePermission();
     const items = [
         {
             key: 'send' as const,
@@ -18,6 +26,16 @@ export function OperatorSmsTabs({ active }: { active: 'send' | 'templates' }) {
             href: templates.index().url,
             icon: FileText,
         },
+        ...(can(PERMISSIONS.TWILIO_SETTINGS.EDIT)
+            ? [
+                  {
+                      key: 'settings' as const,
+                      label: 'Twilio settings',
+                      href: twilioSettings.edit().url,
+                      icon: Settings2,
+                  },
+              ]
+            : []),
     ];
 
     return (

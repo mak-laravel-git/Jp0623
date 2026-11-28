@@ -38,5 +38,6 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Secrets typed in the admin settings forms must not be flashed back into the session.
+        $exceptions->dontFlash(['auth_token']);
     })->create();

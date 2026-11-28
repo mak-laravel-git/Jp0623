@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\SendOperatorSmsRequest;
 use App\Services\AdminOperatorSmsService;
 use App\Services\SmsTemplateService;
+use App\Services\TwilioSmsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,6 +17,7 @@ class OperatorSmsController extends Controller
     public function __construct(
         private AdminOperatorSmsService $operatorSms,
         private SmsTemplateService $templates,
+        private TwilioSmsService $twilio,
     ) {}
 
     public function index(Request $request): Response
@@ -54,10 +56,7 @@ class OperatorSmsController extends Controller
                 'name' => $template->name,
                 'body' => $template->body,
             ])->values()->all(),
-            'twilioEnabled' => (bool) config('services.twilio.enabled')
-                && filled(config('services.twilio.sid'))
-                && filled(config('services.twilio.token'))
-                && filled(config('services.twilio.from')),
+            'twilioEnabled' => $this->twilio->isEnabled(),
             'filters' => [
                 'search' => $search,
                 'range' => $range,

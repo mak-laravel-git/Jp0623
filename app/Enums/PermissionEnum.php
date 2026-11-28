@@ -173,6 +173,9 @@ enum PermissionEnum: string
     case OPERATOR_SMS_INDEX = 'operator-sms.index';
     case OPERATOR_SMS_SEND = 'operator-sms.send';
 
+    // TWILIO SETTINGS (SMS credentials edited by the admin)
+    case TWILIO_SETTINGS_EDIT = 'twilio-settings.edit';
+
     // CONTACT MESSAGES
     case CONTACT_MESSAGES_INDEX = 'contact-messages.index';
     case CONTACT_MESSAGES_VIEW = 'contact-messages.view';
@@ -335,6 +338,8 @@ enum PermissionEnum: string
 
             self::OPERATOR_SMS_INDEX,
             self::OPERATOR_SMS_SEND => 'Operator SMS',
+
+            self::TWILIO_SETTINGS_EDIT => 'Twilio Settings',
 
             self::CONTACT_MESSAGES_INDEX,
             self::CONTACT_MESSAGES_VIEW,

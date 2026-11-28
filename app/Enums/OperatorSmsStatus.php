@@ -28,7 +28,7 @@ enum OperatorSmsStatus: string
     {
         return match ($this) {
             self::PENDING => 'SMS alert to nearby operators is queued or still sending.',
-            self::DONE => 'Nearby operators within 100 miles were notified by SMS.',
+            self::DONE => 'Nearby operators were notified by SMS.',
             self::PARTIAL => 'Some nearby operators were notified; others failed.',
             self::FAILED => 'SMS alert to nearby operators could not be sent.',
             self::SKIPPED => 'No SMS sent (Twilio off, missing location, or no operators nearby).',

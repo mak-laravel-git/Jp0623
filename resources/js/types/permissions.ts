@@ -184,6 +184,9 @@ export const PERMISSIONS = {
         INDEX: 'operator-sms.index',
         SEND: 'operator-sms.send',
     },
+    TWILIO_SETTINGS: {
+        EDIT: 'twilio-settings.edit',
+    },
     CONTACT_MESSAGES: {
         INDEX: 'contact-messages.index',
         VIEW: 'contact-messages.view',

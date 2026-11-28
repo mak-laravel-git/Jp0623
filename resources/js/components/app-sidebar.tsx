@@ -30,6 +30,7 @@ import {
     Mail,
     History,
     KeyRound,
+    Settings2,
     Undo2,
     Wallet,
 } from 'lucide-react';
@@ -73,6 +74,7 @@ import adminLeadIssues from '@/routes/admin/lead-issues';
 import adminRefunds from '@/routes/admin/refunds';
 import adminRouteInquiries from '@/routes/admin/route-inquiries';
 import adminRouteListings from '@/routes/admin/route-listings';
+import adminTwilioSettings from '@/routes/admin/twilio-settings';
 import adminUserManagement from '@/routes/admin/user-management';
 import adminCoffeeServiceRequests from '@/routes/admin/coffee-service-requests';
 import adminContactMessages from '@/routes/admin/contact-messages';
@@ -383,6 +385,12 @@ export function AppSidebar() {
                 href: adminOperatorSms.index(),
                 icon: Send,
                 permissions: [PERMISSIONS.OPERATOR_SMS.INDEX],
+            },
+            {
+                title: 'Twilio settings',
+                href: adminTwilioSettings.edit(),
+                icon: Settings2,
+                permissions: [PERMISSIONS.TWILIO_SETTINGS.EDIT],
             },
             {
                 title: 'Billing & Membership',

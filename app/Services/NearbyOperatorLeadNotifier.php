@@ -18,6 +18,7 @@ class NearbyOperatorLeadNotifier
     public function __construct(
         private NearbyOperatorLocator $locator,
         private TwilioSmsService $twilio,
+        private TwilioSettingsService $twilioSettings,
         private SmsTemplateService $templates,
     ) {}
 
@@ -94,7 +95,7 @@ class NearbyOperatorLeadNotifier
             );
         }
 
-        $radiusMiles = (float) config('services.twilio.lead_radius_miles', 100);
+        $radiusMiles = $this->twilioSettings->leadRadiusMiles();
         $operators = $this->locator->withinMiles($latitude, $longitude, $radiusMiles);
 
         if ($operators->isEmpty()) {
@@ -130,9 +131,9 @@ class NearbyOperatorLeadNotifier
         };
 
         $note = match ($status) {
-            OperatorSmsStatus::DONE => "Notified {$sent} nearby operator" . ($sent === 1 ? '' : 's') . '.',
-            OperatorSmsStatus::PARTIAL => "Notified {$sent} operator" . ($sent === 1 ? '' : 's') . "; {$failed} failed.",
-            default => "Failed to notify {$failed} nearby operator" . ($failed === 1 ? '' : 's') . '.',
+            OperatorSmsStatus::DONE => "Notified {$sent} nearby operator".($sent === 1 ? '' : 's').'.',
+            OperatorSmsStatus::PARTIAL => "Notified {$sent} operator".($sent === 1 ? '' : 's')."; {$failed} failed.",
+            default => "Failed to notify {$failed} nearby operator".($failed === 1 ? '' : 's').'.',
         };
 
         Log::info('Nearby operator SMS fan-out finished.', [
