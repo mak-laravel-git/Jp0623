@@ -67,6 +67,7 @@ import adminLocationTypes from '@/routes/admin/location-types';
 import adminMachineCategories from '@/routes/admin/machine-categories';
 import adminMachineFaqs from '@/routes/admin/machine-faqs';
 import adminMachines from '@/routes/admin/machines';
+import adminMicroMarketFaqs from '@/routes/admin/micro-market-faqs';
 import adminOfficeCoffeeFaqs from '@/routes/admin/office-coffee-faqs';
 import adminProducts from '@/routes/admin/products';
 import adminHeroSection from '@/routes/admin/hero-section';
@@ -452,6 +453,7 @@ export function AppSidebar() {
                     PERMISSIONS.HOME_FAQS.INDEX,
                     PERMISSIONS.MACHINE_FAQS.INDEX,
                     PERMISSIONS.OFFICE_COFFEE_FAQS.INDEX,
+                    PERMISSIONS.MICRO_MARKET_FAQS.INDEX,
                     PERMISSIONS.ABOUT_FAQS.INDEX,
                 ],
                 items: [
@@ -472,6 +474,12 @@ export function AppSidebar() {
                         href: adminOfficeCoffeeFaqs.index(),
                         icon: Coffee,
                         permissions: [PERMISSIONS.OFFICE_COFFEE_FAQS.INDEX],
+                    },
+                    {
+                        title: 'Micro Market FAQs',
+                        href: adminMicroMarketFaqs.index(),
+                        icon: ShoppingBasket,
+                        permissions: [PERMISSIONS.MICRO_MARKET_FAQS.INDEX],
                     },
                     {
                         title: 'About FAQs',

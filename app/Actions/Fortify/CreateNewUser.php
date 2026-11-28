@@ -8,7 +8,6 @@ use App\Enums\RoleEnum;
 use App\Models\User;
 use App\Services\MachineCategoryService;
 use App\Support\RegisterOtp;
-use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -104,26 +103,5 @@ class CreateNewUser implements CreatesNewUsers
 
             return $user;
         });
-    }
-
-    /**
-     * @return list<string|Closure>
-     */
-    private function phoneRules(): array
-    {
-        return [
-            'required',
-            'string',
-            'max:50',
-            'regex:/^[0-9+\-() ]+$/',
-            function (string $attribute, mixed $value, Closure $fail): void {
-                $digits = preg_replace('/\D+/', '', (string) $value) ?? '';
-                $length = strlen($digits);
-
-                if ($length < 7 || $length > 15) {
-                    $fail('The phone must contain between 7 and 15 digits.');
-                }
-            },
-        ];
     }
 }

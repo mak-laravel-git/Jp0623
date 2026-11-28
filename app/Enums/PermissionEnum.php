@@ -118,6 +118,12 @@ enum PermissionEnum: string
     case OFFICE_COFFEE_FAQS_EDIT = 'office-coffee-faqs.edit';
     case OFFICE_COFFEE_FAQS_DELETE = 'office-coffee-faqs.delete';
 
+    // MICRO MARKET FAQS
+    case MICRO_MARKET_FAQS_INDEX = 'micro-market-faqs.index';
+    case MICRO_MARKET_FAQS_CREATE = 'micro-market-faqs.create';
+    case MICRO_MARKET_FAQS_EDIT = 'micro-market-faqs.edit';
+    case MICRO_MARKET_FAQS_DELETE = 'micro-market-faqs.delete';
+
     // COFFEE MACHINES
     case COFFEE_MACHINES_INDEX = 'coffee-machines.index';
     case COFFEE_MACHINES_CREATE = 'coffee-machines.create';
@@ -293,6 +299,11 @@ enum PermissionEnum: string
             self::OFFICE_COFFEE_FAQS_CREATE,
             self::OFFICE_COFFEE_FAQS_EDIT,
             self::OFFICE_COFFEE_FAQS_DELETE => 'Office Coffee FAQs',
+
+            self::MICRO_MARKET_FAQS_INDEX,
+            self::MICRO_MARKET_FAQS_CREATE,
+            self::MICRO_MARKET_FAQS_EDIT,
+            self::MICRO_MARKET_FAQS_DELETE => 'Micro Market FAQs',
 
             self::COFFEE_MACHINES_INDEX,
             self::COFFEE_MACHINES_CREATE,

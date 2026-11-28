@@ -209,18 +209,22 @@ class OperatorDashboardData
     }
 
     /**
-     * @return array<string, mixed>
+     * What the member has really saved; anything missing stays empty.
+     *
+     * @return array{firstName: string, lastName: string, company: string, email: string, phone: string, hasProfile: bool}
      */
     public static function account(User $user): array
     {
         $profile = $user->operatorProfile;
+        $name = trim($user->name);
 
         return [
-            'firstName' => $profile?->first_name ?: str($user->name)->before(' ')->toString() ?: 'Alex',
-            'lastName' => $profile?->last_name ?: str($user->name)->after(' ')->toString() ?: 'Jordan',
-            'company' => $profile?->company_name ?: 'Gulf Coast Vending',
+            'firstName' => (string) ($profile?->first_name ?: str($name)->before(' ')),
+            'lastName' => (string) ($profile?->last_name ?: (str_contains($name, ' ') ? str($name)->after(' ') : '')),
+            'company' => (string) $profile?->company_name,
             'email' => $user->email,
-            'phone' => $profile?->phone ?: '(555) 010-0000',
+            'phone' => (string) $profile?->phone,
+            'hasProfile' => $profile !== null,
         ];
     }
 

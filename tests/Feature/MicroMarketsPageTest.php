@@ -1,9 +1,11 @@
 <?php
 
 use App\Models\Machine;
+use App\Models\MicroMarketFaq;
 use App\Models\Product;
 use Database\Seeders\MachineCategorySeeder;
 use Database\Seeders\MachineSeeder;
+use Database\Seeders\MicroMarketFaqSeeder;
 use Database\Seeders\ProductSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -11,7 +13,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 uses(RefreshDatabase::class);
 
 test('micro markets page renders with demo props', function () {
-    $this->seed([MachineCategorySeeder::class, MachineSeeder::class, ProductSeeder::class]);
+    $this->seed([MachineCategorySeeder::class, MachineSeeder::class, ProductSeeder::class, MicroMarketFaqSeeder::class]);
 
     $this->get(route('micro-markets'))
         ->assertOk()
@@ -60,4 +62,30 @@ test('micro markets compare cards come from machines and hide inactive ones', fu
             ->where('compare.items.0.title', 'Edited market name')
             ->where('compare.items.0.tag', 'Sites with 100+ people')
         );
+});
+
+test('micro markets faqs come from active records in sort order', function () {
+    MicroMarketFaq::factory()->create(['question' => 'Second?', 'answer' => 'Two.', 'sort_order' => 2]);
+    MicroMarketFaq::factory()->create(['question' => 'First?', 'answer' => 'One.', 'sort_order' => 1]);
+    MicroMarketFaq::factory()->inactive()->create(['question' => 'Hidden?']);
+
+    $this->get(route('micro-markets'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('faqs.title', 'Micro market questions.')
+            ->where('faqs.items', [
+                ['q' => 'First?', 'a' => 'One.'],
+                ['q' => 'Second?', 'a' => 'Two.'],
+            ])
+        );
+});
+
+test('seeding the micro market faqs again keeps what an admin edited', function () {
+    $this->seed(MicroMarketFaqSeeder::class);
+    MicroMarketFaq::query()->where('question', 'What about theft?')->update(['answer' => 'Edited by an admin.']);
+
+    $this->seed(MicroMarketFaqSeeder::class);
+
+    expect(MicroMarketFaq::query()->count())->toBe(4)
+        ->and(MicroMarketFaq::query()->where('question', 'What about theft?')->value('answer'))->toBe('Edited by an admin.');
 });

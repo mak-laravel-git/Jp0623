@@ -129,6 +129,12 @@ export const PERMISSIONS = {
         EDIT: 'office-coffee-faqs.edit',
         DELETE: 'office-coffee-faqs.delete',
     },
+    MICRO_MARKET_FAQS: {
+        INDEX: 'micro-market-faqs.index',
+        CREATE: 'micro-market-faqs.create',
+        EDIT: 'micro-market-faqs.edit',
+        DELETE: 'micro-market-faqs.delete',
+    },
     COFFEE_MACHINES: {
         INDEX: 'coffee-machines.index',
         CREATE: 'coffee-machines.create',
